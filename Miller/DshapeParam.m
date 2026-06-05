@@ -3,7 +3,11 @@ function [R, Z, u, p] = DshapeParam(p, ntheta)
 
     u = linspace(0, 2*pi, ntheta);
     r = p.r;
-    R0 = p.A*r;
+    if ~isfield(p, 'R0')
+        R0 = p.A*r;
+    else
+        R0 = p.R0;
+    end
     x = asin(p.delta);
 
     R = R0 + r*cos(u + x*sin(u));
