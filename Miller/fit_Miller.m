@@ -27,9 +27,11 @@ function param = fit_Miller(eq, psiN, varargin)
     param.A = R0/r;
     param.delta = delta;
     param.kappa = kappa;
-    param.drR0 = drR0;
+    param.dR0_dr = drR0;
     param.s_delta = s_delta;
     param.s_kappa = s_kappa;
+    param.F = interp1(linspace(0, 1, eq.nw), eq.fpol(:), psiN);
+    param.q = interp1(linspace(0, 1, eq.nw), eq.qpsi(:), psiN);
 end
 
 function [R0, r, delta, kappa] = find_shaping(s)
