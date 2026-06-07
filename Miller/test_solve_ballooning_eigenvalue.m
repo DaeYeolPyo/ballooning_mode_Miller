@@ -4,7 +4,9 @@ close all
 
 thisDir = fileparts(mfilename('fullpath'));
 addpath(thisDir);
-addpath(fullfile(thisDir, 'salpha'));
+if exist(fullfile(thisDir, 'salpha'), 'dir') == 7
+    addpath(fullfile(thisDir, 'salpha'));
+end
 addpath(fullfile(thisDir, '..', 'Gaur'));
 
 fprintf('solve_ballooning_eigenvalue diagnostic\n');

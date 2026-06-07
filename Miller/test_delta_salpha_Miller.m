@@ -2,6 +2,7 @@ clc
 clear
 close all
 
+%% Load ballooning solver
 thisDir = fileparts(mfilename('fullpath'));
 addpath(thisDir);
 addpath(fullfile(thisDir, '..', 'Gaur'));
@@ -9,18 +10,21 @@ addpath(fullfile(thisDir, '..', 'Gaur'));
 p = DshapeMillerParams();
 
 % Miller Fig. 5 style: vary delta only. Other Miller parameters, including
-% s_delta, are kept fixed.
+% s_delta, are kept fixed.  The Fig. 5 triangularity label uses the opposite
+% sign from this local R = R0 + r*cos(theta + asin(delta)*sin(theta))
+% implementation, so DeltaSign = -1 below.
 deltaGrid = [0.1, 0.3, 0.5, 0.7];
 
 % Coarse scan for a first pass. Increase these after the curve locations are
 % identified.
 ns = 20; nalpha = 20; ntheta0 = 30;
-sGrid = linspace(0.0, 5.0, ns);
-alphaGrid = linspace(0.0, 8.0, nalpha);
+sGrid = linspace(0.0, 7.0, ns);
+alphaGrid = linspace(0.0, 12.0, nalpha);
 theta0Grid = linspace(0.0, pi, ntheta0);
 
 outDelta = scan_miller_delta_salpha_curves(p, ...
     'DeltaGrid', deltaGrid, ...
+    'DeltaSign', -1, ...
     'SGrid', sGrid, ...
     'AlphaGrid', alphaGrid, ...
     'Theta0Grid', theta0Grid, ...
@@ -33,7 +37,7 @@ outDelta = scan_miller_delta_salpha_curves(p, ...
     'PoolType', 'threads', ...
     'Verbose', true);
 
-plot_miller_delta_marginal_curves(outDelta);
+plot_miller_delta_marginal_curves(outDelta, 'MarginalMode', 'curves');
 
 fprintf('Miller delta s-alpha marginal-curve scan done.\n');
 for id = 1:numel(outDelta.delta)

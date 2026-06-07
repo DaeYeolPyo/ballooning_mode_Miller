@@ -28,7 +28,8 @@ function sol = solve_ballooning_eigenvalue(bal, varargin)
 %   Which         : eigs selector, default 'largestreal'
 %   UseSparse     : use sparse matrix, default true
 %   FullEigThreshold : use full eig when interior size is below this, default 800
-%   RefineRayleigh: recompute lambda with variational/Rayleigh quotient, default true
+%   RefineRayleigh: recompute lambda with the assembled discrete Rayleigh
+%                   quotient, default true
 %   Plot          : true/false, default false
 %
 % Output
@@ -190,7 +191,7 @@ function sol = solve_ballooning_eigenvalue(bal, varargin)
 
     lambda_refined = NaN;
     if opt.RefineRayleigh
-        lambda_refined = rayleigh_refine(theta_b, X, g, c, f);
+        lambda_refined = discrete_rayleigh_refine(X(2:end-1), K, Mmat);
     end
 
     sol = struct();
@@ -325,50 +326,8 @@ function [th_u, v_u] = unique_periodic_samples(th, v)
 end
 
 %==========================================================================
-function lam = rayleigh_refine(theta, X, g, c, f)
-    % Fourth-order-ish derivative where possible; gradient handles boundaries.
-    dX = fourth_order_derivative_uniform(theta, X);
-    num = simpson_or_trapz(theta, c.*abs(X).^2 - g.*abs(dX).^2);
-    den = simpson_or_trapz(theta, f.*abs(X).^2);
-    lam = num / den;
-end
-
-%==========================================================================
-function dY = fourth_order_derivative_uniform(x, y)
-    x = x(:); y = y(:);
-    n = numel(y);
-    h = x(2)-x(1);
-    dY = zeros(n,1);
-
-    if n < 5
-        dY = gradient(y,h);
-        return;
-    end
-
-    % 4th-order centered interior.
-    for i = 3:n-2
-        dY(i) = (y(i-2) - 8*y(i-1) + 8*y(i+1) - y(i+2)) / (12*h);
-    end
-
-    % 2nd-order one-sided near boundaries.
-    dY(1)   = (-3*y(1) + 4*y(2) - y(3)) / (2*h);
-    dY(2)   = (y(3) - y(1)) / (2*h);
-    dY(n-1) = (y(n) - y(n-2)) / (2*h);
-    dY(n)   = (3*y(n) - 4*y(n-1) + y(n-2)) / (2*h);
-end
-
-%==========================================================================
-function I = simpson_or_trapz(x, y)
-    x = x(:); y = y(:);
-    n = numel(x);
-    h = x(2)-x(1);
-
-    % Simpson 1/3 needs odd number of points, even number of intervals.
-    if mod(n,2) == 1
-        I = h/3 * (y(1) + y(end) + 4*sum(y(2:2:end-1)) + 2*sum(y(3:2:end-2)));
-    else
-        % Simpson on first n-1 points + trapezoid on last interval.
-        I = h/3 * (y(1) + y(end-1) + 4*sum(y(2:2:end-2)) + 2*sum(y(3:2:end-3))) ...
-            + h*(y(end-1)+y(end))/2;
-    end
+function lam = discrete_rayleigh_refine(Xint, K, Mmat)
+    num = Xint' * (K * Xint);
+    den = Xint' * (Mmat * Xint);
+    lam = real(num / den);
 end

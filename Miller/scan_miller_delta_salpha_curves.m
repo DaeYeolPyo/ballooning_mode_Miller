@@ -10,11 +10,14 @@ function out = scan_miller_delta_salpha_curves(p, varargin)
 
     ip = inputParser;
     addParameter(ip, 'DeltaGrid', default_delta_grid(p), @(x)isnumeric(x)&&isvector(x));
+    addParameter(ip, 'DeltaSign', 1.0, @(x)isnumeric(x)&&isscalar(x)&&any(x == [-1, 1]));
     addParameter(ip, 'SGrid', linspace(0.0, 5.0, 13), @(x)isnumeric(x)&&isvector(x));
     addParameter(ip, 'AlphaGrid', linspace(0.0, 4.0, 13), @(x)isnumeric(x)&&isvector(x));
     addParameter(ip, 'Theta0Grid', linspace(0.0, pi, 5), @(x)isnumeric(x)&&isvector(x));
     addParameter(ip, 'NThetaCoeff', 161, @(x)isnumeric(x)&&isscalar(x)&&x>=32);
     addParameter(ip, 'NGeom', 601, @(x)isnumeric(x)&&isscalar(x)&&x>=128);
+    addParameter(ip, 'FFprimeScale', 1.0, @(x)isnumeric(x)&&isscalar(x)&&isfinite(x));
+    addParameter(ip, 'AlphaMapping', 'volume', @(x)ischar(x)||isstring(x));
     addParameter(ip, 'ThetaB', 5*pi, @(x)isnumeric(x)&&isscalar(x)&&x>0);
     addParameter(ip, 'NBalloon', 201, @(x)isnumeric(x)&&isscalar(x)&&x>=51);
     addParameter(ip, 'NEigs', 6, @(x)isnumeric(x)&&isscalar(x)&&x>=1);
@@ -27,6 +30,7 @@ function out = scan_miller_delta_salpha_curves(p, varargin)
     opt = ip.Results;
 
     deltaGrid = unique(opt.DeltaGrid(:).', 'stable');
+    internalDeltaGrid = opt.DeltaSign.*deltaGrid;
     nD = numel(deltaGrid);
     scans = cell(1, nD);
 
@@ -47,25 +51,28 @@ function out = scan_miller_delta_salpha_curves(p, varargin)
         optPar = opt;
         optPar.Verbose = false;
         parfor id = 1:nD
-            scans{id} = run_one_delta_scan(p, deltaGrid(id), optPar);
+            scans{id} = run_one_delta_scan(p, internalDeltaGrid(id), optPar);
         end
 
         if verboseInside
             for id = 1:nD
-                fprintf('  delta scan %d/%d done (delta = %.4g)\n', id, nD, deltaGrid(id));
+                fprintf('  delta scan %d/%d done (delta = %.4g, internal = %.4g)\n', ...
+                    id, nD, deltaGrid(id), internalDeltaGrid(id));
             end
         end
     else
         for id = 1:nD
             if opt.Verbose
-                fprintf('\nDelta scan %d/%d: delta = %.4g\n', id, nD, deltaGrid(id));
+                fprintf('\nDelta scan %d/%d: delta = %.4g, internal = %.4g\n', ...
+                    id, nD, deltaGrid(id), internalDeltaGrid(id));
             end
-            scans{id} = run_one_delta_scan(p, deltaGrid(id), opt);
+            scans{id} = run_one_delta_scan(p, internalDeltaGrid(id), opt);
         end
     end
 
     out = struct();
     out.delta = deltaGrid;
+    out.internal_delta = internalDeltaGrid;
     out.scans = scans;
     out.params = p;
     out.options = opt;
@@ -91,6 +98,8 @@ function scan = run_one_delta_scan(p, deltaValue, opt)
         'Theta0Grid', opt.Theta0Grid, ...
         'NThetaCoeff', opt.NThetaCoeff, ...
         'NGeom', opt.NGeom, ...
+        'FFprimeScale', opt.FFprimeScale, ...
+        'AlphaMapping', opt.AlphaMapping, ...
         'ThetaB', opt.ThetaB, ...
         'NBalloon', opt.NBalloon, ...
         'NEigs', opt.NEigs, ...

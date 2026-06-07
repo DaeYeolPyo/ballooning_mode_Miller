@@ -21,6 +21,8 @@ function bal = eq_ballooning_coefficients(eq, psin0, varargin)
 %   - theta is the straight-field-line theta returned by
 %     eq_straight_fieldline_theta with JacMode=4 by default.
 %   - zeta is not explicitly needed for axisymmetric coefficients.
+%   - For local s-alpha scans, S_hat overrides dq/dpsin and Alpha overrides
+%     dp/dpsin through alpha = AlphaFactor*(mu0*dp/dpsin).
 
     p = inputParser;
     addParameter(p, 'JacMode', 4, @(x)isnumeric(x) && isscalar(x));
@@ -28,6 +30,10 @@ function bal = eq_ballooning_coefficients(eq, psin0, varargin)
     addParameter(p, 'Dpsin', 1e-3, @(x)isnumeric(x) && isscalar(x) && x > 0);
     addParameter(p, 'Theta0', 0.0, @(x)isnumeric(x) && isscalar(x));
     addParameter(p, 'Alpha0', 0.0, @(x)isnumeric(x) && isscalar(x));
+    addParameter(p, 'S_hat', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x)));
+    addParameter(p, 'Alpha', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x)));
+    addParameter(p, 'ShearDefinition', 'flux', @(x)ischar(x) || isstring(x));
+    addParameter(p, 'AlphaFactor', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x ~= 0));
     addParameter(p, 'aN', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x > 0));
     addParameter(p, 'BN', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x > 0));
     addParameter(p, 'Mu0', 4*pi*1e-7, @(x)isnumeric(x) && isscalar(x));
@@ -87,6 +93,9 @@ function bal = eq_ballooning_coefficients(eq, psin0, varargin)
     q0  = interp1(prof.psin, prof.q, psin0, 'pchip', 'extrap');
     dp0 = interp1(prof.psin, prof.dp_dpsin, psin0, 'pchip', 'extrap');
     dq0 = interp1(prof.psin, prof.dq_dpsin, psin0, 'pchip', 'extrap');
+    if ~isempty(opt.S_hat)
+        dq0 = shear_to_dq_dpsin(opt.S_hat, q0, psin0, opt.ShearDefinition);
+    end
 
     if isempty(opt.aN)
         if isfield(eq, 'rbbbs')
@@ -119,6 +128,16 @@ function bal = eq_ballooning_coefficients(eq, psin0, varargin)
     Bmag = sqrt(sum(Bvec.^2, 2));
     bvec = Bvec ./ Bmag;
     BoverBN = Bmag ./ BN;
+
+    alphaFactorDefault = default_alpha_factor(q0, eq, grad_psin, Bmag, BN);
+    if isempty(opt.AlphaFactor)
+        alphaFactor = alphaFactorDefault;
+    else
+        alphaFactor = opt.AlphaFactor;
+    end
+    if ~isempty(opt.Alpha)
+        dp0 = (opt.Alpha ./ alphaFactor) ./ opt.Mu0;
+    end
 
     % ---------------------------------------------------------------
     % 5) Clebsch alpha_t gradient
@@ -177,6 +196,18 @@ function bal = eq_ballooning_coefficients(eq, psin0, varargin)
     bal.p = p0;
     bal.dp_dpsin = dp0;
     bal.dpbar_dpsin = dpbar_dpsin;
+    if isempty(opt.S_hat)
+        bal.s_hat = dq0 .* 2 .* psin0 ./ q0;
+    else
+        bal.s_hat = opt.S_hat;
+    end
+    bal.alpha = opt.Alpha;
+    if isempty(bal.alpha)
+        bal.alpha = alphaFactor .* opt.Mu0 .* dp0;
+    end
+    bal.alphaFactor = alphaFactor;
+    bal.alphaFactorDefault = alphaFactorDefault;
+    bal.shearDefinition = char(lower(string(opt.ShearDefinition)));
     bal.F = F0;
     bal.BN = BN;
     bal.aN = aN;
@@ -294,6 +325,44 @@ function val = get_first_field(s, names)
         end
     end
     error('Required profile field not found. Tried: %s', strjoin(names, ', '));
+end
+
+% =====================================================================
+function dq = shear_to_dq_dpsin(sHat, q0, psin0, definition)
+    definition = lower(string(definition));
+    switch definition
+        case "flux"
+            dq = sHat .* q0 ./ max(2 .* psin0, eps);
+        case "minor"
+            dq = sHat .* q0;
+        otherwise
+            error('eq_ballooning_coefficients:BadShearDefinition', ...
+                'ShearDefinition must be ''flux'' or ''minor''.');
+    end
+end
+
+% =====================================================================
+function alphaFactor = default_alpha_factor(q0, eq, grad_psin, Bmag, BN)
+    if isfield(eq, 'rmaxis') && isfinite(eq.rmaxis)
+        R0 = eq.rmaxis;
+    elseif isfield(eq, 'rcentr') && isfinite(eq.rcentr)
+        R0 = eq.rcentr;
+    else
+        R0 = 1.0;
+    end
+
+    gradRef = mean(vecnorm(grad_psin, 2, 2), 'omitnan');
+    if ~isfinite(gradRef) || gradRef <= 0
+        gradRef = max(vecnorm(grad_psin, 2, 2), [], 'omitnan');
+    end
+
+    if ~isfinite(BN) || BN <= 0
+        B2ref = mean(Bmag.^2, 'omitnan');
+    else
+        B2ref = BN.^2;
+    end
+
+    alphaFactor = -2 .* q0.^2 .* R0 .* gradRef ./ max(B2ref, eps);
 end
 
 % =====================================================================

@@ -14,6 +14,8 @@ function bal = miller_ballooning_coefficients(p, varargin)
     addParameter(ip, 'NGeom', 1201, @(x)isnumeric(x)&&isscalar(x)&&x>=128);
     addParameter(ip, 'Theta0', 0.0, @(x)isnumeric(x)&&isscalar(x));
     addParameter(ip, 'DrFrac', 1e-4, @(x)isnumeric(x)&&isscalar(x)&&x>0);
+    addParameter(ip, 'FFprimeScale', 1.0, @(x)isnumeric(x)&&isscalar(x)&&isfinite(x));
+    addParameter(ip, 'AlphaMapping', 'volume', @(x)ischar(x)||isstring(x));
     addParameter(ip, 'Mu0', 4*pi*1e-7, @(x)isnumeric(x)&&isscalar(x)&&x>0);
     parse(ip, varargin{:});
     opt = ip.Results;
@@ -32,8 +34,9 @@ function bal = miller_ballooning_coefficients(p, varargin)
 
     surf0 = miller_surface_on_pest_theta(p, theta, opt.NGeom);
 
-    [pprime, dpbar_dpsin, geomScales] = miller_pressure_gradient(p, surf0, opt.Mu0);
-    FFprime = miller_FFprime_from_shear(p, surf0, pprime, opt.Mu0);
+    [pprime, dpbar_dpsin, geomScales] = miller_pressure_gradient(p, surf0, ...
+        opt.Mu0, opt.AlphaMapping);
+    FFprime = opt.FFprimeScale*miller_FFprime_from_shear(p, surf0, pprime, opt.Mu0);
 
     pm = perturb_miller_surface(p, -dr, FFprime);
     pp = perturb_miller_surface(p,  dr, FFprime);
@@ -203,7 +206,7 @@ function [theta_u, keep] = unique_monotone(theta)
     keep(keep_idx) = true;
 end
 
-function [pprime, dpbar_dpsin, scales] = miller_pressure_gradient(p, surf, mu0)
+function [pprime, dpbar_dpsin, scales] = miller_pressure_gradient(p, surf, mu0, alphaMapping)
     R0 = p.A*p.r;
     area = polyarea(surf.R, surf.Z);
     centroidR = polygon_centroid_R(surf.R, surf.Z);
@@ -214,14 +217,33 @@ function [pprime, dpbar_dpsin, scales] = miller_pressure_gradient(p, surf, mu0)
     dVdpsi = dVdr/surf.dpdr;
 
     minor_eff = sqrt(max(V/(2*pi^2*R0), eps));
-    pprime = -p.alpha*(2*pi)^2/(2*dVdpsi*minor_eff*mu0);
-    dpbar_dpsin = mu0/ p.B0^2 * pprime * surf.dpdr * p.r;
+    switch lower(string(alphaMapping))
+        case "volume"
+            pprime = -p.alpha*(2*pi)^2/(2*dVdpsi*minor_eff*mu0);
+            pprimeEquation = mu0*pprime;
+            alphaFactor = p.alpha/pprimeEquation;
+
+        case "miller"
+            % Miller alpha is alpha = -2*q^2*R0/B0^2 * dp/dr.
+            alphaFactor = -2*p.q^2*R0*surf.dpdr/(p.B0^2);
+            pprimeEquation = p.alpha/alphaFactor;
+            pprime = pprimeEquation/mu0;
+
+        otherwise
+            error('miller_ballooning_coefficients:BadAlphaMapping', ...
+                'Unknown AlphaMapping: %s', alphaMapping);
+    end
+
+    dpbar_dpsin = pprimeEquation*surf.dpdr*p.r/(p.B0^2);
 
     scales = struct();
     scales.V = V;
     scales.dVdr = dVdr;
     scales.dVdpsi = dVdpsi;
     scales.minor_eff = minor_eff;
+    scales.alphaFactor = alphaFactor;
+    scales.pprimeEquation = pprimeEquation;
+    scales.alphaMapping = char(alphaMapping);
 end
 
 function cR = polygon_centroid_R(R, Z)

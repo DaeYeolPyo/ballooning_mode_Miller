@@ -3,6 +3,8 @@ function h = plot_miller_delta_marginal_curves(out, varargin)
 
     ip = inputParser;
     addParameter(ip, 'Parent', [], @(x) isempty(x) || isgraphics(x));
+    addParameter(ip, 'MarginalMode', 'contour', @(x)ischar(x)||isstring(x));
+    addParameter(ip, 'MinCurvePoints', 2, @(x)isnumeric(x)&&isscalar(x)&&x>=2);
     addParameter(ip, 'LineWidth', 2.0, @(x)isnumeric(x)&&isscalar(x)&&x>0);
     addParameter(ip, 'ShowLegend', true, @(x)islogical(x)&&isscalar(x));
     parse(ip, varargin{:});
@@ -27,10 +29,23 @@ function h = plot_miller_delta_marginal_curves(out, varargin)
 
         hasCrossing = min(lam(:), [], 'omitnan') <= 0 && max(lam(:), [], 'omitnan') >= 0;
         if hasCrossing
-            [~, h(id)] = contour(ax, A, S, lam, [0 0], ...
-                'LineWidth', opt.LineWidth, ...
-                'LineColor', colors(id,:), ...
-                'DisplayName', sprintf('\\delta = %.3g', out.delta(id)));
+            mode = lower(string(opt.MarginalMode));
+            switch mode
+                case "contour"
+                    [~, h(id)] = contour(ax, A, S, lam, [0 0], ...
+                        'LineWidth', opt.LineWidth, ...
+                        'LineColor', colors(id,:), ...
+                        'DisplayName', sprintf('\\delta = %.3g', out.delta(id)));
+
+                case {"curve", "curves"}
+                    h(id) = plot_delta_curves(ax, scan, colors(id,:), ...
+                        opt.MinCurvePoints, opt.LineWidth, ...
+                        sprintf('\\delta = %.3g', out.delta(id)));
+
+                otherwise
+                    error('plot_miller_delta_marginal_curves:BadMarginalMode', ...
+                        'Unknown MarginalMode: %s', mode);
+            end
         else
             warning('plot_miller_delta_marginal_curves:NoCrossing', ...
                 'No lambda=0 crossing found for delta = %.6g.', out.delta(id));
@@ -45,5 +60,29 @@ function h = plot_miller_delta_marginal_curves(out, varargin)
 
     if opt.ShowLegend
         legend(ax, 'Location', 'best');
+    end
+end
+
+function hFirst = plot_delta_curves(ax, scan, color, minCurvePoints, lineWidth, displayName)
+    curves = salpha_marginal_contours(scan);
+    keep = arrayfun(@(c) c.n >= minCurvePoints, curves);
+    curves = curves(keep);
+
+    hFirst = gobjects(1);
+    for k = 1:numel(curves)
+        if k == 1
+            name = displayName;
+        else
+            name = '';
+        end
+
+        hLine = plot(ax, curves(k).alpha, curves(k).s, ...
+            'LineWidth', lineWidth, ...
+            'Color', color, ...
+            'DisplayName', name);
+
+        if k == 1
+            hFirst = hLine;
+        end
     end
 end

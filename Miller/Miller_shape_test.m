@@ -23,25 +23,35 @@ title('Selected flux surfaces');
 
 %% Fit the flux surface at psiN = 0.77 [Miller(1998)]
 psiN = 0.77;
-param = fit_Miller(eq, psiN);
+param = fit_Miller(eq, psiN, 'dpsi', 1.e-3, 'NTheta', 600);
 ntheta = 300;
 
 figure;
-contour(eq.rgrid, eq.zgrid, eq.psirz.', 40); hold on;
 s = extract_flux_surface(eq, psiN);
 [R, Z, u, p] = DshapeParam(param, ntheta);
-plot(s.R, s.Z, '-k');
-plot(R, Z, '-r');
+plot(s.R, s.Z, '-k', 'LineWidth', 2);
+hold on;
+plot(R, Z, '-r', 'LineWidth', 2);
+plot(eq.rbbbs, eq.zbbbs, '-b', 'LineWidth', 1);
 xlabel('R [m]');
 ylabel('Z [m]');
-title('Fitted Miller shape');
+legend('Fitted surface', 'geqdsk surface')
 
 %% Evaluate poloidal field
 [Bp, out] = Bpol_Dshape(param, ntheta);
 Bp_EFIT = Bpol_from_EFIT(eq, out.R, out.Z);
 
 figure;
-plot(out.u, Bp, '-b', 'LineWidth', 2);
+plot(out.u, Bp, '-k', 'LineWidth', 2);
 hold on
 plot(out.u, Bp_EFIT, '-r', 'LineWidth', 2);
 legend('From fitting', 'From geqdsk');
+
+%% Evaluate PEST coordinate theta
+integrand = 1./(out.R.^2 .* Bp);
+theta_PEST = zeros(1, ntheta);
+for i = 2:ntheta
+    theta_PEST(i) = theta_PEST(i-1) + 0.5*hypot(out.R(i-1) - out.R(i), ...
+        out.Z(i-1) - out.Z(i))*(integrand(i-1) + integrand(i));
+end
+theta_PEST = 2.*pi.*theta_PEST./theta_PEST(end);
