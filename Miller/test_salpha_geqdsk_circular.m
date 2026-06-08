@@ -14,9 +14,9 @@ psin0 = 0.80;
 
 % Coarse first-pass scan.  Increase ns/nalpha/ntheta0 after the marginal
 % curve location is identified.
-ns = 15;
-nalpha = 19;
-ntheta0 = 5;
+ns = 30;
+nalpha = 30;
+ntheta0 = 15;
 sGrid = linspace(0.0, 7.0, ns);
 alphaGrid = linspace(0.0, 10.0, nalpha);
 theta0Grid = linspace(0.0, pi, ntheta0);

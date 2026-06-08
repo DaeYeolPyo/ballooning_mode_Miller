@@ -16,13 +16,16 @@ ntheta = 301;
 figure(1);
 [R1, Z1] = CshapeParam([A; 0.3; C; G; H], ntheta);
 [R2, Z2] = CshapeParam([A; 0.2; C; G; H], ntheta);
+[R3, Z3] = CshapeParam([A; 0.5; C; G; H], ntheta);
+[R4, Z4] = CshapeParam([A; 0.7; C; G; H], ntheta);
 
 plot(R2, Z2, 'LineWidth', 1.5);
 hold on
-plot(R, Z, 'LineWidth', 1.5);
 plot(R1, Z1, 'LineWidth', 1.5);
+plot(R3, Z3, 'LineWidth', 1.5);
+plot(R4, Z4, 'LineWidth', 1.5);
 grid on
-legend('B = 0.2', 'B = 0.25', 'B = 0.3');
+legend('B = 0.2', 'B = 0.3', 'B = 0.5', 'B = 0.7');
 
 %% Varying C
 figure(2);

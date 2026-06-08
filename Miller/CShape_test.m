@@ -37,14 +37,16 @@ for k = 1:numel(psins)
     plot(fitR, fitZ, 'LineStyle', '--');
 end
 
-%% Calculate derivative of shaping coefficients
+%% Calculate derivative of shaping coefficients and check poloidal field
 psiN = 0.9;
 
-coeffs = Cshape_metrics_bpfit(eq, psiN, ntheta);
-[Rr, Zr] = r_derv(coeffs, ntheta);
-[Rt, Zt] = theta_derv(coeffs, ntheta);
+coeffs_geom = Cshape_metrics(eq, psiN);
+coeffs_bpfit = Cshape_metrics_bpfit(eq, psiN, ntheta);
+[Rr, Zr] = r_derv(coeffs_bpfit, ntheta);
+[Rt, Zt] = theta_derv(coeffs_bpfit, ntheta);
 
-Bp = Bpol(eq, psiN, ntheta, coeffs);
+Bp_geom = Bpol(eq, psiN, ntheta, coeffs_geom);
+Bp_bpfit = Bpol(eq, psiN, ntheta, coeffs_bpfit);
 figure;
 
 subplot(1, 2, 1);
@@ -52,7 +54,7 @@ contour(eq.rgrid, eq.zgrid, eq.psirz.', 40);
 hold on;
 surf = extract_flux_surface(eq, psiN);
 plot(surf.R, surf.Z, 'LineWidth', 2);
-[R, Z] = CshapeParam(coeffs, ntheta);
+[R, Z] = CshapeParam(coeffs_bpfit(:, 1), ntheta);
 plot(R(1), Z(1), 'ro');
 plot(R, Z, 'LineStyle', '--');
 legend('', 'Flux surface', '', 'Fitted surface')
@@ -62,9 +64,21 @@ Bp_EFIT = Bpol_from_EFIT(eq, R, Z);
 arc = cumsum([0, hypot(diff(R), diff(Z))]);
 arcTheta = 2*pi*arc/arc(end);
 
-plot(arcTheta, Bp);
+plot(arcTheta, Bp_geom, '-k', 'LineWidth', 1.5);
 hold on;
-%plot(arcTheta, Bp_EFIT);
-xlabel('Equal arc-length angle');
-ylabel('B_p');
-%legend('C-shape local model', 'EFIT', 'Location', 'best');
+%plot(arcTheta, Bp_bpfit, '-b', 'LineWidth', 1.5);
+plot(arcTheta, Bp_EFIT, '-r', 'LineWidth', 1.5);
+grid on;
+xlabel('\theta');
+ylabel('B_p [T]');
+legend('From fitting', 'From geqdsk', 'Location', 'best');
+
+relerr = @(a,b) max(abs(a(:) - b(:)), [], 'omitnan') ...
+    ./ max(max(abs(b(:)), [], 'omitnan'), eps);
+fprintf('C-shape Bpol diagnostic at psiN = %.6g\n', psiN);
+fprintf('  geometry-fit relerr max : %.6e\n', relerr(Bp_geom, Bp_EFIT));
+fprintf('  Bp-fit relerr max       : %.6e\n', relerr(Bp_bpfit, Bp_EFIT));
+fprintf('  EFIT Bp min/max         : %.6e, %.6e\n', ...
+    min(Bp_EFIT, [], 'omitnan'), max(Bp_EFIT, [], 'omitnan'));
+fprintf('  Bp-fit min/max          : %.6e, %.6e\n', ...
+    min(Bp_bpfit, [], 'omitnan'), max(Bp_bpfit, [], 'omitnan'));

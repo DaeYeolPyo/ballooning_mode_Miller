@@ -7,10 +7,9 @@ addpath(thisDir);
 addpath(fullfile(thisDir, '..', 'Gaur'));
 
 p = DshapeMillerParams();
-p.delta = 0.4;
 
 % Coarse default scan. Increase these grids after the marginal curve appears.
-ns = 20; nalpha = 20; ntheta0 = 30;
+ns = 20; nalpha = 20; ntheta0 = 5;
 sGrid = linspace(0.0, 7.0, ns);
 alphaGrid = linspace(0.0, 8.0, nalpha);
 theta0Grid = linspace(0.0, pi, ntheta0);

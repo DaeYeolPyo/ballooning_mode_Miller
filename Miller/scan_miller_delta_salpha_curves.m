@@ -1,15 +1,19 @@
 function out = scan_miller_delta_salpha_curves(p, varargin)
-%SCAN_MILLER_DELTA_SALPHA_CURVES Scan marginal s-alpha curves vs triangularity.
+%SCAN_MILLER_DELTA_SALPHA_CURVES Scan marginal s-alpha curves vs Miller shape.
 %
 %   out = scan_miller_delta_salpha_curves(p)
 %   out = scan_miller_delta_salpha_curves(p,'Name',value,...)
 %
-% This is a Miller Fig. 5 style scan: delta is varied, while the remaining
-% Miller shape/local-equilibrium parameters are held fixed. For each delta,
-% scan_miller_salpha_diagram is called and the marginal curve is lambda=0.
+% By default this is a Miller Fig. 5 style scan: delta is varied, while the
+% remaining Miller shape/local-equilibrium parameters are held fixed. Use
+% 'ScanParameter','kappa' and 'KappaGrid',... to scan elongation instead.
+% For each shape value, scan_miller_salpha_diagram is called and the
+% marginal curve is lambda=0.
 
     ip = inputParser;
+    addParameter(ip, 'ScanParameter', 'delta', @(x)ischar(x)||isstring(x));
     addParameter(ip, 'DeltaGrid', default_delta_grid(p), @(x)isnumeric(x)&&isvector(x));
+    addParameter(ip, 'KappaGrid', default_kappa_grid(p), @(x)isnumeric(x)&&isvector(x));
     addParameter(ip, 'DeltaSign', 1.0, @(x)isnumeric(x)&&isscalar(x)&&any(x == [-1, 1]));
     addParameter(ip, 'SGrid', linspace(0.0, 5.0, 13), @(x)isnumeric(x)&&isvector(x));
     addParameter(ip, 'AlphaGrid', linspace(0.0, 4.0, 13), @(x)isnumeric(x)&&isvector(x));
@@ -29,14 +33,30 @@ function out = scan_miller_delta_salpha_curves(p, varargin)
     parse(ip, varargin{:});
     opt = ip.Results;
 
-    deltaGrid = unique(opt.DeltaGrid(:).', 'stable');
-    internalDeltaGrid = opt.DeltaSign.*deltaGrid;
-    nD = numel(deltaGrid);
-    scans = cell(1, nD);
+    scanParameter = lower(string(opt.ScanParameter));
+    switch scanParameter
+        case "delta"
+            parameterName = 'delta';
+            parameterLabel = '\delta';
+            parameterGrid = unique(opt.DeltaGrid(:).', 'stable');
+            internalParameterGrid = opt.DeltaSign.*parameterGrid;
+        case "kappa"
+            parameterName = 'kappa';
+            parameterLabel = '\kappa';
+            parameterGrid = unique(opt.KappaGrid(:).', 'stable');
+            internalParameterGrid = parameterGrid;
+        otherwise
+            error('scan_miller_delta_salpha_curves:BadScanParameter', ...
+                'ScanParameter must be ''delta'' or ''kappa''.');
+    end
+    scanName = [upper(parameterName(1)), parameterName(2:end)];
 
-    useParallel = opt.UseParallel && nD > 1;
+    nP = numel(parameterGrid);
+    scans = cell(1, nP);
+
+    useParallel = opt.UseParallel && nP > 1;
     if useParallel
-        [useParallel, poolMsg] = ensure_parallel_pool(opt, nD);
+        [useParallel, poolMsg] = ensure_parallel_pool(opt, nP);
         if opt.Verbose && strlength(poolMsg) > 0
             fprintf('%s\n', poolMsg);
         end
@@ -44,35 +64,49 @@ function out = scan_miller_delta_salpha_curves(p, varargin)
 
     if useParallel
         if opt.Verbose
-            fprintf('Running delta scans in parallel across %d delta values.\n', nD);
+            fprintf('Running %s scans in parallel across %d values.\n', ...
+                parameterName, nP);
         end
 
         verboseInside = opt.Verbose;
         optPar = opt;
         optPar.Verbose = false;
-        parfor id = 1:nD
-            scans{id} = run_one_delta_scan(p, internalDeltaGrid(id), optPar);
+        parfor id = 1:nP
+            scans{id} = run_one_parameter_scan(p, parameterName, ...
+                internalParameterGrid(id), optPar);
         end
 
         if verboseInside
-            for id = 1:nD
-                fprintf('  delta scan %d/%d done (delta = %.4g, internal = %.4g)\n', ...
-                    id, nD, deltaGrid(id), internalDeltaGrid(id));
+            for id = 1:nP
+                fprintf('  %s scan %d/%d done (%s = %.4g, internal = %.4g)\n', ...
+                    parameterName, id, nP, parameterName, ...
+                    parameterGrid(id), internalParameterGrid(id));
             end
         end
     else
-        for id = 1:nD
+        for id = 1:nP
             if opt.Verbose
-                fprintf('\nDelta scan %d/%d: delta = %.4g, internal = %.4g\n', ...
-                    id, nD, deltaGrid(id), internalDeltaGrid(id));
+                fprintf('\n%s scan %d/%d: %s = %.4g, internal = %.4g\n', ...
+                    scanName, id, nP, parameterName, parameterGrid(id), ...
+                    internalParameterGrid(id));
             end
-            scans{id} = run_one_delta_scan(p, internalDeltaGrid(id), opt);
+            scans{id} = run_one_parameter_scan(p, parameterName, ...
+                internalParameterGrid(id), opt);
         end
     end
 
     out = struct();
-    out.delta = deltaGrid;
-    out.internal_delta = internalDeltaGrid;
+    out.scan_parameter = parameterName;
+    out.parameter_label = parameterLabel;
+    out.parameter_values = parameterGrid;
+    out.internal_parameter_values = internalParameterGrid;
+    if scanParameter == "delta"
+        out.delta = parameterGrid;
+        out.internal_delta = internalParameterGrid;
+    else
+        out.kappa = parameterGrid;
+        out.internal_kappa = internalParameterGrid;
+    end
     out.scans = scans;
     out.params = p;
     out.options = opt;
@@ -88,11 +122,20 @@ function deltaGrid = default_delta_grid(p)
     deltaGrid = deltaGrid(abs(deltaGrid) < 0.98);
 end
 
-function scan = run_one_delta_scan(p, deltaValue, opt)
-    pDelta = p;
-    pDelta.delta = deltaValue;
+function kappaGrid = default_kappa_grid(p)
+    if isfield(p, 'kappa')
+        k0 = p.kappa;
+    else
+        k0 = 1.6;
+    end
+    kappaGrid = [1.2, 1.4, k0, 1.8];
+end
 
-    scan = scan_miller_salpha_diagram(pDelta, ...
+function scan = run_one_parameter_scan(p, parameterName, parameterValue, opt)
+    pScan = p;
+    pScan.(parameterName) = parameterValue;
+
+    scan = scan_miller_salpha_diagram(pScan, ...
         'SGrid', opt.SGrid, ...
         'AlphaGrid', opt.AlphaGrid, ...
         'Theta0Grid', opt.Theta0Grid, ...

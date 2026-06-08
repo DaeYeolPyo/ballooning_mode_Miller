@@ -18,7 +18,9 @@ function h = plot_miller_delta_marginal_curves(out, varargin)
     end
     hold(ax, 'on');
 
-    nD = numel(out.delta);
+    [parameterValues, parameterLabel, parameterName] = scan_parameter_info(out);
+
+    nD = numel(parameterValues);
     colors = lines(max(nD, 1));
     h = gobjects(1, nD);
 
@@ -32,15 +34,15 @@ function h = plot_miller_delta_marginal_curves(out, varargin)
             mode = lower(string(opt.MarginalMode));
             switch mode
                 case "contour"
-                    [~, h(id)] = contour(ax, A, S, lam, [0 0], ...
+                    [~, h(id)] = contour(ax, A, S, lam, [0.01 0.01], ...
                         'LineWidth', opt.LineWidth, ...
                         'LineColor', colors(id,:), ...
-                        'DisplayName', sprintf('\\delta = %.3g', out.delta(id)));
+                        'DisplayName', sprintf('%s = %.3g', parameterLabel, parameterValues(id)));
 
                 case {"curve", "curves"}
                     h(id) = plot_delta_curves(ax, scan, colors(id,:), ...
                         opt.MinCurvePoints, opt.LineWidth, ...
-                        sprintf('\\delta = %.3g', out.delta(id)));
+                        sprintf('%s = %.3g', parameterLabel, parameterValues(id)));
 
                 otherwise
                     error('plot_miller_delta_marginal_curves:BadMarginalMode', ...
@@ -48,7 +50,8 @@ function h = plot_miller_delta_marginal_curves(out, varargin)
             end
         else
             warning('plot_miller_delta_marginal_curves:NoCrossing', ...
-                'No lambda=0 crossing found for delta = %.6g.', out.delta(id));
+                'No lambda=0 crossing found for %s = %.6g.', ...
+                parameterName, parameterValues(id));
         end
     end
 
@@ -61,6 +64,27 @@ function h = plot_miller_delta_marginal_curves(out, varargin)
     if opt.ShowLegend
         legend(ax, 'Location', 'best');
     end
+end
+
+function [values, label, name] = scan_parameter_info(out)
+    if isfield(out, 'parameter_values')
+        values = out.parameter_values;
+        if isfield(out, 'parameter_label')
+            label = out.parameter_label;
+        else
+            label = out.scan_parameter;
+        end
+        if isfield(out, 'scan_parameter')
+            name = out.scan_parameter;
+        else
+            name = label;
+        end
+        return;
+    end
+
+    values = out.delta;
+    label = '\delta';
+    name = 'delta';
 end
 
 function hFirst = plot_delta_curves(ax, scan, color, minCurvePoints, lineWidth, displayName)

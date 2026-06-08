@@ -8,16 +8,16 @@ addpath(thisDir);
 addpath(fullfile(thisDir, '..', 'Gaur'));
 
 %% Read GEQDSK and fit the flux surface
-eq = read_geqdsk('./geqdsk_PT0.7');
+%eq = read_geqdsk('./geqdsk_PT0.7');
+eq = read_geqdsk('./geqdsk_circular');
 
 psiN = 0.77;
 p = fit_Miller(eq, psiN, 'dpsi', 1.e-3, 'NTheta', 600);
-ntheta = 300;
 
 % Coarse default scan. Increase these grids after the marginal curve appears.
-ns = 20; nalpha = 20; ntheta0 = 15;
-sGrid = linspace(0.0, 7.0, ns);
-alphaGrid = linspace(0.0, 10.0, nalpha);
+ns = 50; nalpha = 50; ntheta0 = 15;
+sGrid = linspace(0.0, 5.0, ns);
+alphaGrid = linspace(0.0, 6.0, nalpha);
 theta0Grid = linspace(0.0, pi, ntheta0);
 
 out = scan_miller_salpha_diagram(p, ...
@@ -31,7 +31,7 @@ out = scan_miller_salpha_diagram(p, ...
     'NEigs', 6, ...
     'Verbose', true);
 
-plot_salpha_diagram(out, 'MarginalMode', 'curves');
+plot_salpha_diagram(out, 'MarginalMode', 'contour');
 
 fprintf('Miller D-shape s-alpha scan done.\n');
 fprintf('lambda_max range: %.6g to %.6g\n', ...
