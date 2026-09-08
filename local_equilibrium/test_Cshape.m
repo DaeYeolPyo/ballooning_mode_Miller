@@ -32,7 +32,6 @@ xlabel('R [m]');
 ylabel('Z [m]');
 legend('CShape fit', 'GEQDSK target surface', 'Plasma boundary', ...
     'Location', 'best');
-title(sprintf('Flux-surface fit at \\psi_N = %.3f', target_psiN));
 
 %% Evaluate poloidal field
 merluc = CShape_Mercier_Luc(surf, param, bnd);

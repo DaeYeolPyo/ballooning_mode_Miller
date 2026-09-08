@@ -9,13 +9,14 @@ addpath(fullfile(thisDir, '..', 'Gaur'));
 
 %% Read GEQDSK and fit the flux surface
 %eq = read_geqdsk('./geqdsk_PT0.7');
-eq = read_geqdsk('./geqdsk_circular');
+%eq = read_geqdsk('./geqdsk_circular');
+eq = read_geqdsk('./geqdsk_NT0.1');
 
-psiN = 0.77;
+psiN = 0.7;
 p = fit_Miller(eq, psiN, 'dpsi', 1.e-3, 'NTheta', 600);
 
 % Coarse default scan. Increase these grids after the marginal curve appears.
-ns = 50; nalpha = 50; ntheta0 = 15;
+ns = 30; nalpha = 30; ntheta0 = 15;
 sGrid = linspace(0.0, 5.0, ns);
 alphaGrid = linspace(0.0, 6.0, nalpha);
 theta0Grid = linspace(0.0, pi, ntheta0);

@@ -2,8 +2,10 @@ clc
 clear
 close all
 %% Read GEQDSK and select flux surfaces
-eq = read_geqdsk('../Bishop/curavture_analysis/geqdsk/scan_B2.5_C18_G08_H11.geqdsk');
-%eq = read_geqdsk('./geqdsk_PT0.6');
+%eq = read_geqdsk('../Bishop/curavture_analysis/geqdsk/scan_B2.5_C18_G08_H11.geqdsk');
+eq = read_geqdsk( ...
+    "C:\Users\DaeYeolPyo\Desktop\CShape\c-shape-samples\c-shape-samples\kappa5" + ...
+    "\scan_B2.5_C10_G13_H12_app2.033_gpp0.935_aff0.938_gff1.800.geqdsk");
 
 figure;
 contour(eq.rgrid, eq.zgrid, eq.psirz.', 40); hold on;
@@ -36,9 +38,10 @@ for k = 1:numel(psins)
     [fitR, fitZ] = CshapeParam(coeffs, ntheta);
     plot(fitR, fitZ, 'LineStyle', '--');
 end
+axis equal;
 
 %% Calculate derivative of shaping coefficients and check poloidal field
-psiN = 0.9;
+psiN = 0.7;
 
 coeffs_geom = Cshape_metrics(eq, psiN);
 coeffs_bpfit = Cshape_metrics_bpfit(eq, psiN, ntheta);

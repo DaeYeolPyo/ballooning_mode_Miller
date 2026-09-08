@@ -30,6 +30,9 @@ function coeff = calculate_ballooning_coeffs(map, metrics, target_psiN, opts)
         target_psiN (1,1) double
         opts.Theta0 (1,1) double = 0
         opts.ThetaExt double = []
+        opts.use_salpha (1,1) logical = false
+        opts.s (1,1) double = 0
+        opts.alpha (1, 1) double = 0
     end
 
     validate_inputs(map, metrics);
@@ -103,8 +106,13 @@ function coeff = calculate_ballooning_coeffs(map, metrics, target_psiN, opts)
 
     % q' and B2_psi are derivatives with respect to map.psi, not psiN.
     q = qProfile(k);
-    qprime = local_cubic_derivative(psi, qProfile, k);
-    pprime = pprimeProfile(k);
+
+    if opts.use_salpha
+        
+    else
+        qprime = local_cubic_derivative(psi, qProfile, k);
+        pprime = pprimeProfile(k);
+    end
 
     B2all = metrics.B2;
     B2 = B2all(k, :);
@@ -151,10 +159,10 @@ function coeff = calculate_ballooning_coeffs(map, metrics, target_psiN, opts)
     denomC = J .* B2.^2;
 
     c0 = pprime ./ denomC .* ( ...
-          gcov.psitheta(k, :) .* B2_theta ...
-        - Gpar .* (B2_psi + 2*pprime));
+          Gpar .* (B2_psi + 2*pprime) ...
+        - gcov.psitheta(k, :) .* B2_theta);
 
-    c1 = pprime ./ denomC .* ...
+    c1 = -pprime ./ denomC .* ...
         (q*qprime .* R.^2 .* B2_theta);
 
     % Periodic geometry is evaluated on thetaExt modulo 2*pi.  Only the

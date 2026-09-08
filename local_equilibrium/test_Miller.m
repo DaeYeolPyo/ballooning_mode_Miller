@@ -1,37 +1,42 @@
-clc
-clear
-close all
+function miller_validation = test_Miller( ...
+        geqdsk_file, target_psiN, miller_fit_dpsi)
+    clc
+    close all
 
-this_dir = fileparts(mfilename('fullpath'));
-addpath(fullfile(this_dir, '..', 'equilibrium'));
+    this_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(this_dir, '..', 'equilibrium'));
 
 %% Load equilibrium from GEQDSK
-geqdsk_file = fullfile(this_dir, '..', 'Miller', 'geqdsk_PT0.6');
-%geqdsk_file = fullfile(this_dir, '..', 'Miller', 'geqdsk_circular');
+if nargin < 1 || isempty(geqdsk_file)
+    geqdsk_file = fullfile(this_dir, '..', 'gfiles', 'geqdsk_PT0.6');
+end
 eq = read_geqdsk(geqdsk_file);
 eqfunc = build_interpolants(eq);
 
 %% Set target flux surface
-target_psiN = 0.5;
+if nargin < 2 || isempty(target_psiN)
+    target_psiN = 0.7;
+end
+if nargin < 3 || isempty(miller_fit_dpsi)
+    miller_fit_dpsi = 3.e-2;
+end
 
 surf = extract_flux_surface(eq, eqfunc, target_psiN, Npoints=1024);
-ints = compute_contour_integrals(eq, eqfunc, surf);
 
 %% Fit the flux surface into analytic shape
-[param, bnd] = fit_Miller(eq, eqfunc, target_psiN, NTheta=1024);
+[param, bnd] = fit_Miller(eq, eqfunc, target_psiN, ...
+    NTheta=1024, dpsi=miller_fit_dpsi);
 
 figure('Color', 'w', 'Name', 'Miller surface fit');
 plot(bnd.R, bnd.Z, '-k', 'LineWidth', 2);
 hold on;
 plot(bnd.Req, bnd.Zeq, '-r', 'LineWidth', 2);
 plot(eq.rbbbs, eq.zbbbs, '-b', 'LineWidth', 1);
-axis equal;
 grid on;
 xlabel('R [m]');
 ylabel('Z [m]');
 legend('Miller fit', 'GEQDSK target surface', 'Plasma boundary', ...
     'Location', 'best');
-title(sprintf('Flux-surface fit at \\psi_N = %.3f', target_psiN));
 
 %% Evaluate poloidal field
 merluc = Miller_Mercier_Luc(surf, param, bnd);
@@ -39,11 +44,22 @@ merluc = Miller_Mercier_Luc(surf, param, bnd);
 % Evaluate the GEQDSK field at the same (R,Z) points as the Miller fit.
 eq_on_Miller = eqfunc.eval(merluc.R, merluc.Z);
 Bp_geqdsk = eq_on_Miller.Bp(:);
+Bphi_geqdsk = eq_on_Miller.Bphi(:);
+B_geqdsk = sqrt(eq_on_Miller.B2(:));
 psiN_on_Miller = eq_on_Miller.psiN(:);
 
 relerr = (merluc.Bp - Bp_geqdsk)./max(abs(Bp_geqdsk), eps);
 rms_Bp_relerr = sqrt(mean(relerr.^2));
 max_Bp_relerr = max(abs(relerr));
+relerr_Bphi = (merluc.Bphi - Bphi_geqdsk) ...
+    ./max(abs(Bphi_geqdsk), eps);
+rms_Bphi_relerr = sqrt(mean(relerr_Bphi.^2));
+max_Bphi_relerr = max(abs(relerr_Bphi));
+relerr_B = (merluc.B - B_geqdsk)./max(abs(B_geqdsk), eps);
+rms_B_relerr = sqrt(mean(relerr_B.^2));
+max_B_relerr = max(abs(relerr_B));
+psiN_fit_rms = sqrt(mean((psiN_on_Miller - target_psiN).^2));
+psiN_fit_max = max(abs(psiN_on_Miller - target_psiN));
 
 figure('Color', 'w', 'Name', 'Miller vs GEQDSK poloidal field');
 tiledlayout(2, 1, 'TileSpacing', 'compact');
@@ -68,15 +84,24 @@ xlabel('Miller geometric angle \theta [rad]');
 ylabel('Relative error [%]');
 
 fprintf('Miller vs GEQDSK Bp at psiN = %.6f\n', target_psiN);
+fprintf('  GEQDSK file               : %s\n', geqdsk_file);
+fprintf('  R0, r, kappa, delta       : %.8e, %.8e, %.8e, %.8e\n', ...
+    param.R0, param.r, param.kappa, param.delta);
 fprintf('  dpsi/dr from q constraint : %.8e Wb/m\n', merluc.dpsi_dr);
 fprintf('  q target / q check        : %.8f / %.8f\n', ...
     surf.q, merluc.q_check);
 fprintf('  fitted-surface psiN range : [%.8f, %.8f]\n', ...
     min(psiN_on_Miller), max(psiN_on_Miller));
+fprintf('  RMS / max |psiN-psiN0|    : %.6e / %.6e\n', ...
+    psiN_fit_rms, psiN_fit_max);
 fprintf('  RMS relative Bp error     : %.6e\n', ...
     rms_Bp_relerr);
 fprintf('  Max relative Bp error     : %.6e\n', ...
     max_Bp_relerr);
+fprintf('  RMS / max Bphi rel. error : %.6e / %.6e\n', ...
+    rms_Bphi_relerr, max_Bphi_relerr);
+fprintf('  RMS / max |B| rel. error  : %.6e / %.6e\n', ...
+    rms_B_relerr, max_B_relerr);
 fprintf('  radial-fit half width     : %.6f in psiN\n', ...
     param.radial_fit.half_width);
 fprintf('  radial-fit surfaces       : %d\n', ...
@@ -154,6 +179,8 @@ fprintf('  geo/PEST max difference   : %.8e 1/Wb\n', ...
 closure_tolerance = 1.e-10*max(1, max(abs(theta_psi)));
 assert(rms_Bp_relerr < 5.e-2, ...
     'Miller Bp validation failed: RMS relative error exceeds 5%%.');
+assert(rms_Bphi_relerr < 5.e-2 && rms_B_relerr < 5.e-2, ...
+    'Miller toroidal/total-field validation failed: RMS error exceeds 5%%.');
 assert(all(normal_projection_aligned > 0), ...
     'Mercier normal is not aligned with increasing Miller r.');
 assert(abs(theta_PEST_span - 2*pi) < 1.e-10, ...
@@ -282,3 +309,21 @@ assert(zero_pressure_c_error < gcf_tolerance, ...
     'The pressure-curvature coefficient c does not vanish for pprime=0.');
 
 fprintf('  validation status         : PASS\n');
+
+miller_validation = struct();
+miller_validation.model = 'miller-mercier-luc';
+miller_validation.geqdsk_file = geqdsk_file;
+miller_validation.target_psiN = target_psiN;
+miller_validation.miller_fit_dpsi = miller_fit_dpsi;
+miller_validation.param = param;
+miller_validation.bnd = bnd;
+miller_validation.surf = surf;
+miller_validation.merluc = merluc;
+miller_validation.theta_diag = theta_diag;
+miller_validation.bal_coef = bal_coef;
+miller_validation.rms_Bp_relerr = rms_Bp_relerr;
+miller_validation.max_Bp_relerr = max_Bp_relerr;
+miller_validation.psiN_fit_rms = psiN_fit_rms;
+miller_validation.psiN_fit_max = psiN_fit_max;
+miller_validation.status = 'PASS';
+end

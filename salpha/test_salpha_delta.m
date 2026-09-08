@@ -18,9 +18,9 @@ delta_grid = [0.2, 0.4, 0.6];
 % A 30 x 30 scan is intended to locate the marginal curves.  Increase the
 % resolution, or refine only around lambda_max = 0, for final curves.
 ntheta0 = 15;
-nshat = 20;
+nshat = 30;
 shat_end = 5.0;
-nalpha = 20;
+nalpha = 30;
 alpha_end = 6.0;
 theta_bnd = 5*pi;
 
@@ -224,8 +224,6 @@ ax.TickDir = 'out';
 ax.FontSize = 11;
 xlabel(ax, '$\alpha$', 'Interpreter', 'latex');
 ylabel(ax, '$\hat{s}$', 'Interpreter', 'latex');
-title(ax, sprintf(['Miller-geometry marginal stability at ', ...
-    '$\\psi_N = %.2f$'], target_psiN), 'Interpreter', 'latex');
 if ~isempty(curve_handles)
     legend(ax, curve_handles, curve_labels, ...
         'Interpreter', 'latex', 'Location', 'best');

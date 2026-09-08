@@ -25,6 +25,8 @@ slprj/
 *.fig
 *.png
 *.jpg
+
+*.pptx
 # *.mp4
 # results/
 # output/

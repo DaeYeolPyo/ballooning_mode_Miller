@@ -1,6 +1,6 @@
 clc
-clear
 close all
+clearvars -except geqdsk_file target_psiN local_model miller_fit_dpsi
 
 this_dir = fileparts(mfilename('fullpath'));
 addpath(fullfile(this_dir, '..', 'equilibrium'));
@@ -8,9 +8,18 @@ addpath(fullfile(this_dir, '..', 'ballooning_equation'));
 addpath(fullfile(this_dir, '..', 'sturm_liouville_solver'));
 
 %% Common equilibrium, surface, normalization, and ballooning domain
-geqdsk_file = fullfile(this_dir, '..', 'gfiles', 'geqdsk_PT0.6');
-%geqdsk_file = fullfile(this_dir, '..', 'gfiles', 'geqdsk_circular');
-target_psiN = 0.7;
+if ~exist('geqdsk_file', 'var') || isempty(geqdsk_file)
+    geqdsk_file = fullfile(this_dir, '..', 'gfiles', 'geqdsk_PT0.6');
+end
+if ~exist('target_psiN', 'var') || isempty(target_psiN)
+    target_psiN = 0.7;
+end
+if ~exist('local_model', 'var') || isempty(local_model)
+    local_model = "Miller";
+end
+if ~exist('miller_fit_dpsi', 'var') || isempty(miller_fit_dpsi)
+    miller_fit_dpsi = 3.e-2;
+end
 theta0 = 0.0;
 theta_bnd = 5*pi;
 n_theta_metric = 256;
@@ -72,14 +81,27 @@ Bp_metric = sqrt(max(B2_metric - (F_metric./R_metric).^2, 0));
 theta_psi_metric = metrics.g_contra.psitheta(target_index, :).' ...
     ./metrics.g_contra.psipsi(target_index, :).';
 
-%% Path B: fitted Miller surface with Mercier-Luc local equilibrium
+%% Path B: fitted analytic surface with Mercier-Luc local equilibrium
 surf_local = extract_flux_surface( ...
     eq_physical, eqfunc_physical, target_psiN, ...
     Npoints=n_surface_points);
-[param, bnd] = fit_Miller( ...
-    eq_physical, eqfunc_physical, target_psiN, ...
-    NTheta=n_surface_points);
-merluc = Miller_Mercier_Luc(surf_local, param, bnd);
+switch lower(string(local_model))
+    case "miller"
+        [param, bnd] = fit_Miller( ...
+            eq_physical, eqfunc_physical, target_psiN, ...
+            NTheta=n_surface_points, dpsi=miller_fit_dpsi);
+        merluc = Miller_Mercier_Luc(surf_local, param, bnd);
+        local_label = 'Miller/Mercier-Luc';
+    case "circular"
+        [param, bnd] = fit_Circular( ...
+            eq_physical, eqfunc_physical, target_psiN, ...
+            NTheta=n_surface_points);
+        merluc = Circular_Mercier_Luc(surf_local, param, bnd);
+        local_label = 'Circular/Mercier-Luc';
+    otherwise
+        error('validate_local_eq:UnknownLocalModel', ...
+            'local_model must be "Miller" or "Circular".');
+end
 
 FFprime = eqfunc_physical.FFprime(target_psiN);
 pprime = eqfunc_physical.pprime(target_psiN);
@@ -164,7 +186,7 @@ comparison.eigenvalue.relative_difference = abs(lambda_local - lambda_metric) ..
     /max(abs(lambda_metric), eps);
 comparison.eigenfunction.overlap = mode_overlap;
 
-fprintf('\nDirect metric vs Mercier-Luc local equilibrium\n');
+fprintf('\nDirect metric vs %s local equilibrium\n', local_label);
 fprintf('  GEQDSK / target psiN       : %s / %.6f\n', ...
     geqdsk_file, target_psiN);
 fprintf('  a_N, B_N                   : %.8e m, %.8e T\n', a_N, B_N);
@@ -197,7 +219,7 @@ fprintf('  relative RMS K_N           : %.6e\n', ...
 
 fprintf('\nCommon finite-element eigenproblem\n');
 fprintf('  lambda direct metric       : %+.10e\n', lambda_metric);
-fprintf('  lambda Mercier-Luc         : %+.10e\n', lambda_local);
+fprintf('  lambda local model         : %+.10e\n', lambda_local);
 fprintf('  absolute / relative diff   : %.6e / %.6e\n', ...
     comparison.eigenvalue.absolute_difference, ...
     comparison.eigenvalue.relative_difference);
@@ -215,7 +237,7 @@ axis equal;
 grid on;
 xlabel('R/a_N');
 ylabel('Z/a_N');
-legend('Direct metric', 'Mercier-Luc', 'Location', 'best');
+legend('Direct metric', local_label, 'Location', 'best');
 title('Target flux surface');
 
 nexttile;
@@ -225,7 +247,7 @@ plot(theta_base, R_local, '--r', 'LineWidth', 1.5);
 grid on;
 xlabel('PEST angle \theta');
 ylabel('R/a_N');
-legend('Direct metric', 'Mercier-Luc', 'Location', 'best');
+legend('Direct metric', local_label, 'Location', 'best');
 
 nexttile;
 plot(theta_base, Bp_metric, '-k', 'LineWidth', 1.5);
@@ -234,7 +256,7 @@ plot(theta_base, Bp_local, '--r', 'LineWidth', 1.5);
 grid on;
 xlabel('PEST angle \theta');
 ylabel('B_p/B_N');
-legend('Direct metric', 'Mercier-Luc', 'Location', 'best');
+legend('Direct metric', local_label, 'Location', 'best');
 
 nexttile;
 plot(theta_base, theta_psi_metric, '-k', 'LineWidth', 1.5);
@@ -243,7 +265,7 @@ plot(theta_base, theta_psi_local_N, '--r', 'LineWidth', 1.5);
 grid on;
 xlabel('PEST angle \theta');
 ylabel('\partial\theta/\partial\psi_N');
-legend('Direct metric', 'Mercier-Luc', 'Location', 'best');
+legend('Direct metric', local_label, 'Location', 'best');
 
 figure('Color', 'w', 'Name', 'Direct metric vs local g-c-f');
 tiledlayout(3, 1, 'TileSpacing', 'compact');
@@ -254,7 +276,7 @@ hold on;
 semilogy(theta_common, g_local, '--r', 'LineWidth', 1.5);
 grid on;
 ylabel('g');
-legend('Direct metric', 'Mercier-Luc', 'Location', 'best');
+legend('Direct metric', local_label, 'Location', 'best');
 
 nexttile;
 plot(theta_common, coeff_metric.c, '-k', 'LineWidth', 1.5);
@@ -263,7 +285,7 @@ plot(theta_common, c_local, '--r', 'LineWidth', 1.5);
 yline(0, ':k');
 grid on;
 ylabel('c');
-legend('Direct metric', 'Mercier-Luc', 'Location', 'best');
+legend('Direct metric', local_label, 'Location', 'best');
 
 nexttile;
 semilogy(theta_common, coeff_metric.f, '-k', 'LineWidth', 1.5);
@@ -272,7 +294,7 @@ semilogy(theta_common, f_local, '--r', 'LineWidth', 1.5);
 grid on;
 xlabel('Ballooning angle \theta');
 ylabel('f');
-legend('Direct metric', 'Mercier-Luc', 'Location', 'best');
+legend('Direct metric', local_label, 'Location', 'best');
 
 figure('Color', 'w', 'Name', 'Direct metric vs local eigenmode');
 plot(theta_dof, mode_metric, '-k', 'LineWidth', 2);
@@ -282,7 +304,7 @@ yline(0, ':k');
 grid on;
 xlabel('Ballooning angle \theta');
 ylabel('X/max|X|');
-legend('Direct metric', 'Mercier-Luc', 'Location', 'best');
+legend('Direct metric', local_label, 'Location', 'best');
 title(sprintf('Largest mode: \\lambda_{direct}=%.5g, \\lambda_{local}=%.5g', ...
     lambda_metric, lambda_local));
 
@@ -290,11 +312,11 @@ title(sprintf('Largest mode: \\lambda_{direct}=%.5g, \\lambda_{local}=%.5g', ...
 assert(coeff_metric.diagnostics.B2MetricRelativeRms < 5.e-2, ...
     'The direct metric path has an inconsistent B^2 metric.');
 assert(bal_local.validation.all_finite, ...
-    'The Mercier-Luc coefficient path produced NaN or Inf.');
+    'The local-equilibrium coefficient path produced NaN or Inf.');
 assert(all(coeff_metric.g > 0) && all(coeff_metric.f > 0), ...
     'The direct metric path produced non-positive g or f.');
 assert(all(g_local > 0) && all(f_local > 0), ...
-    'The Mercier-Luc path produced non-positive g or f.');
+    'The local-equilibrium path produced non-positive g or f.');
 assert(all(isfinite([lambda_metric; lambda_local; mode_overlap])), ...
     'The common eigenvalue comparison produced a non-finite result.');
 assert(abs(comparison.profile.q_metric - comparison.profile.q_local) ...

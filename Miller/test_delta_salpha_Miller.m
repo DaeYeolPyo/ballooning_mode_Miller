@@ -9,7 +9,7 @@ addpath(fullfile(thisDir, '..', 'Gaur'));
 
 eq = read_geqdsk('./geqdsk_PT0.7');
 
-psiN = 0.77;
+psiN = 0.5;
 p = fit_Miller(eq, psiN, 'dpsi', 1.e-3, 'NTheta', 600);
 
 % Miller Fig. 5 style: vary delta only. Other Miller parameters, including
@@ -20,7 +20,7 @@ deltaGrid = [0.2, 0.4, 0.6];
 
 % Coarse scan for a first pass. Increase these after the curve locations are
 % identified.
-ns = 40; nalpha = 40; ntheta0 = 5;
+ns = 30; nalpha = 30; ntheta0 = 15;
 sGrid = linspace(0.0, 7.0, ns);
 alphaGrid = linspace(0.0, 12.0, nalpha);
 theta0Grid = linspace(0.0, pi, ntheta0);

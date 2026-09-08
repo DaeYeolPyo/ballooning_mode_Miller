@@ -1,4 +1,17 @@
-function ints = compute_contour_integrals(eq, eqfunc, surf)
+function ints = compute_contour_integrals(eq, eqfunc, surf, opts)
+    arguments
+        eq (1,1) struct
+        eqfunc (1,1) struct
+        surf (1,1) struct
+        opts.isNormalized logical = false
+    end
+
+    if opts.isNormalized
+        mu0 = 1;
+    else
+        mu0 = 4*pi*1.e-7;
+    end
+
     R = surf.R(:);
     Z = surf.Z(:);
     dl = surf.dl(:);
@@ -38,6 +51,12 @@ function ints = compute_contour_integrals(eq, eqfunc, surf)
 
     ints.V = V;
     ints.Vprime = Vprime;
+
+    % s and alpha for ballooning calculation
+    ints.s = 2*V*(surf.qprime/Vprime);
+    ints.s_hat = ints.s/surf.q;
+    ints.alpha = -(2*Vprime/(4*pi^2))*sqrt(V/(2*pi^2*surf.Raxis))...
+        *(mu0*surf.pprime);
 
     ints.area_poloidal = abs(area_poloidal);
     ints.mean_R = abs(intR_dA)/max(abs(area_poloidal), eps);

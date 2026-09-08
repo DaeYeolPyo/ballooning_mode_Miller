@@ -196,8 +196,6 @@ colorbar;
 grid on;
 xlabel('$\alpha$', 'Interpreter', 'latex');
 ylabel('$\hat{s}$', 'Interpreter', 'latex');
-title('C-shape fitting based $s$-$\alpha$ stability', ...
-    'Interpreter', 'latex');
 
 % best_theta0 only takes values from the discrete theta0 scan.  Plot one
 % colored square per (s_hat, alpha) sample instead of interpolating between

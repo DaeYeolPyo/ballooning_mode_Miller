@@ -6,8 +6,9 @@ thisDir = fileparts(mfilename('fullpath'));
 addpath(thisDir);
 addpath(fullfile(thisDir, '..', 'Gaur'));
 
-geqdskFile = fullfile(thisDir, '..', 'Bishop', 'curavture_analysis', ...
-    'geqdsk', 'scan_B2.5_C16_G08_H13.geqdsk');
+%geqdskFile = fullfile(thisDir, '..', 'Bishop', 'curavture_analysis', ...
+%    'geqdsk', 'scan_B2.5_C16_G08_H13.geqdsk');
+geqdskFile = "C:\Users\DaeYeolPyo\Desktop\CShape\c-shape-samples\c-shape-samples\kappa5\scan_B2.5_C10_G13_H12_app2.033_gpp0.935_aff0.938_gff1.800.geqdsk";
 psin0 = 0.90;
 
 % Coarse first-pass scan. Increase these after the marginal curve location
@@ -15,8 +16,8 @@ psin0 = 0.90;
 ns = 30;
 nalpha = 30;
 ntheta0 = 15;
-sGrid = linspace(0.0, 3.0, ns);
-alphaGrid = linspace(0.0, 7.0, nalpha);
+sGrid = linspace(0.0, 7.0, ns);
+alphaGrid = linspace(0.0, 20.0, nalpha);
 theta0Grid = linspace(0.0, pi, ntheta0);
 
 eq = read_geqdsk(geqdskFile);

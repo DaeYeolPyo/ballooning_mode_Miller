@@ -35,6 +35,8 @@ plot(mode, lambda(1:numel(mode)), 'bo--', 'DisplayName', 'Numerical');
 hold on;
 plot(mode, lambdaExact, 'r-', 'DisplayName', 'Analytic');
 hold off;
+xlabel('l')
+ylabel('\lambda=-l(l+1)')
 legend;
 
 for i = 1:numplot
@@ -54,10 +56,11 @@ for i = 1:numplot
         Xnum = -Xnum;
     end
 
-    figure;
-    plot(thetaDof, Xnum, 'b--', 'DisplayName', 'Numerical');
+%     figure;
+    plot(thetaDof, Xnum, '--', 'DisplayName', sprintf('P_%d^1(cos\\theta)', ell));
     hold on;
-    plot(thetaDof, Xana, 'r-', 'DisplayName', 'Analytic');
-    hold off;
+%     plot(thetaDof, Xana, 'r-', 'DisplayName', 'Analytic');
+%     hold off;
     legend;
 end
+xlabel('\theta')

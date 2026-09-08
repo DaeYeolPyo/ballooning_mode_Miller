@@ -48,6 +48,7 @@ function surf = extract_flux_surface(eq, eqfunc, target_psiN, opts)
     surf.F = eqfunc.F(target_psiN);
     surf.q = eqfunc.q(target_psiN);
     surf.pprime = eqfunc.pprime(target_psiN);
+    surf.qprime = eqfunc.qprime(target_psiN);
 
     surf.Raxis = eq.rmaxis;
     surf.Zaxis = eq.zmaxis;

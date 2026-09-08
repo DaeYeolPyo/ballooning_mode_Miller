@@ -5,7 +5,7 @@ close all
 %% Numerical parameters
 ngrid = 200;
 m = 1; % Order
-R = 1; % Radius
+R = 2*pi; % Radius
 
 nmode = 100;
 numplot = 5;
@@ -47,7 +47,10 @@ hold on;
 plot(mode, lambdaExact, 'r-', 'DisplayName', 'Analytic');
 hold off;
 legend;
+xlabel('n')
+ylabel('-(j_{1n}/2\pi)^2')
 
+figure(2);
 for i = 1:numplot
     ell = mode(i);
 
@@ -64,10 +67,10 @@ for i = 1:numplot
         Xnum = -Xnum;
     end
 
-    figure;
-    plot(thetaDof, Xnum, 'b--', 'DisplayName', 'Numerical');
+%     figure;
+    plot(thetaDof, Xnum, '--', 'DisplayName', sprintf('J_1(j_{1%d}\\theta/2\\pi)', ell));
     hold on;
-    plot(thetaDof, Xana, 'r-', 'DisplayName', 'Analytic');
-    hold off;
+%     plot(thetaDof, Xana, 'r-', 'DisplayName', 'Analytic');
+%     hold off;
     legend;
 end

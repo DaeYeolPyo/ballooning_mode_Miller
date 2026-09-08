@@ -21,7 +21,7 @@ ntheta0 = 15;
 nshat = 30;
 shat_end = 7.0;
 nalpha = 30;
-alpha_end = 12.0;
+alpha_end = 6.0;
 theta_bnd = 5*pi;
 
 n_surface_points = 1024;
@@ -224,8 +224,6 @@ ax.TickDir = 'out';
 ax.FontSize = 11;
 xlabel(ax, '$\alpha$', 'Interpreter', 'latex');
 ylabel(ax, '$\hat{s}$', 'Interpreter', 'latex');
-title(ax, sprintf(['Miller-geometry marginal stability at ', ...
-    '$\\psi_N = %.2f$'], target_psiN), 'Interpreter', 'latex');
 if ~isempty(curve_handles)
     legend(ax, curve_handles, curve_labels, ...
         'Interpreter', 'latex', 'Location', 'best');
