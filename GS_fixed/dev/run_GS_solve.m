@@ -885,3 +885,71 @@ legend( ...
     'Location','best');
 
 title('Grad-Shafranov Picard convergence');
+
+%% 21. Contour plot
+eq = equilibrium;
+P3 = eq.mesh;
+
+% P3 연결 관계와 동일한 P1 geometry triangulation
+P1 = triangulation( ...
+    P3.P1elements, ...
+    P3.P1points);
+
+% Contour용 Cartesian grid
+Rvec = linspace( ...
+    min(P3.P1points(:,1)), ...
+    max(P3.P1points(:,1)), 400);
+
+Zvec = linspace( ...
+    min(P3.P1points(:,2)), ...
+    max(P3.P1points(:,2)), 500);
+
+[Rplot,Zplot] = meshgrid(Rvec,Zvec);
+
+% 각 격자점에서 P3 FEM solution 평가
+psiPlot = eval_P3_sol( ...
+    P1, P3, eq.psi, ...
+    [Rplot(:),Zplot(:)]);
+
+psiPlot = reshape(psiPlot,size(Rplot));
+
+% Normalized flux
+psiNPlot = ...
+    (psiPlot-eq.psiAxis)/eq.dpsi;
+
+% Flux-surface contours
+figure('Color','w');
+
+levels = 0.1:0.1:0.9;
+
+[C,h] = contour( ...
+    Rplot,Zplot,psiNPlot,levels, ...
+    'LineWidth',1.3);
+
+clabel(C,h,'FontSize',9);
+
+hold on;
+
+% LCFS: psi_N = 1
+boundary = eq.geometry.boundary;
+
+plot( ...
+    boundary(:,1),boundary(:,2), ...
+    'k-','LineWidth',2);
+
+% Magnetic axis
+plot( ...
+    eq.axisPoint(1),eq.axisPoint(2), ...
+    'ro','MarkerFaceColor','r');
+
+axis equal tight;
+grid on;
+box on;
+
+xlabel('R [m]');
+ylabel('Z [m]');
+title('Normalized poloidal-flux contours, \psi_N');
+
+colormap(turbo);
+colorbar;
+clim([0,1]);

@@ -31,7 +31,7 @@ function psiq = eval_P3_sol(P1, P3, psi, Xq)
         xi  = lambda(2);
         eta = lambda(3);
 
-        N = shapeP3(xi,eta);
+        [N,~] = construct_P3_shape_functions(xi,eta);
 
         ids = P3.elements(e,:);
 
