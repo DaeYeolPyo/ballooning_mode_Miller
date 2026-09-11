@@ -17,8 +17,9 @@ clc;
 %% User-adjustable Miller-boundary parameters
 R0     = 3.0;    % geometric major radius [m]
 aMinor = 0.8;    % horizontal minor radius [m]
-kappa  = 1.5;    % elongation
-delta  = 0.25;   % triangularity, |delta| < 1
+kappa  = 3.0;    % elongation
+delta  = -0.4;   % triangularity, |delta| < 1
+indent = 0.8;    % outboard indentation
 
 %% User-adjustable profile parameters
 % p'(psiN) = pprime0*(1 - psiN^aP)^bP
@@ -30,11 +31,11 @@ bP      = 2.0;
 
 % F*F'(psiN) = FFprime0*(1 - psiN^cF)^dF
 FFprime0 = 0.6;   % [T^2 m^2]
-cF       = 1.0;
+cF       = 2.0;
 dF       = 1.0;
 
 %% Other physical and numerical inputs
-B0          = 3.0;  % vacuum toroidal field at R0 [T]
+B0          = 2.0;  % vacuum toroidal field at R0 [T]
 pedge       = 0.0;  % pressure at psiN = 1 [Pa]
 psiBoundary = 0.0;
 
@@ -55,6 +56,8 @@ validateattributes(kappa, {'numeric'}, ...
     {'real','finite','scalar','positive'}, mfilename, 'kappa');
 validateattributes(delta, {'numeric'}, ...
     {'real','finite','scalar','>',-1,'<',1}, mfilename, 'delta');
+validateattributes(indent, {'numeric'}, ...
+    {'real','finite','scalar','positive','<',1}, mfilename, 'indent');
 
 if R0 <= aMinor
     error('TEST_GS:MillerBoundary', ...
@@ -77,7 +80,8 @@ theta = (0:nBoundary-1).'*(2*pi/nBoundary);
 triangularityAngle = asin(delta);
 
 RBoundary = R0 + aMinor*cos( ...
-    theta + triangularityAngle*sin(theta));
+    theta + triangularityAngle*sin(theta)) ...
+    - indent*aMinor*(0.5 + 0.5*cos(theta)).^3;
 ZBoundary = kappa*aMinor*sin(theta);
 
 if any(RBoundary <= 0)
@@ -124,7 +128,7 @@ input.boundary = struct( ...
 
 input.Picard = struct( ...
     'omega', 0.5, ...
-    'maxIterations', 100, ...
+    'maxIterations', 200, ...
     'updateTolerance', 1.e-8, ...
     'residualTolerance', 1.e-8, ...
     'axisMode', 'max', ...

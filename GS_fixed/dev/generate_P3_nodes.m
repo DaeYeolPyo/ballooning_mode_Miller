@@ -3,7 +3,7 @@ function meshP3 = generate_P3_nodes(meshP1)
 % Upgrade a linear triangular mesh to P3 FEM connectivity.
 %
 % INPUT
-%   meshP1 : delaunayTriangulation object
+%   meshP1 : triangulation object
 %
 % OUTPUT
 %   meshP3 : structure containing
@@ -62,7 +62,7 @@ function meshP3 = generate_P3_nodes(meshP1)
 %   coordinates should later be projected onto the actual boundary.
 
     arguments
-        meshP1 delaunayTriangulation
+        meshP1 triangulation
     end
 
     % Original P1 mesh (only triangle vertices)

@@ -79,7 +79,7 @@ function equilibrium = solve_GS(input)
                                R_bnd, Z_bnd);
 
     if any(~triangleInside)
-        error(['[SOLVE_GS] The constrianed triangulation' ...
+        error(['[SOLVE_GS] The constrianed triangulation ' ...
             'contains triangles outside the prescribed LCFS']);
     end
 
