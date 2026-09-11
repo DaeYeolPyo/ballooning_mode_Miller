@@ -1,0 +1,179 @@
+%% test_solve_GS_miller_profiles.m
+% Smoke/integration test for solve_GS using a Miller fixed boundary and
+% analytic p' and F*F' profiles defined on normalized flux.
+%
+% Solver convention:
+%   psiN = 0 at the magnetic axis and psiN = 1 at the boundary.
+%   pprime and FFprime are derivatives with respect to psiN.
+
+% This test has no analytic equilibrium for comparison.  It verifies that
+% the nonlinear solve converges, the prescribed boundary value is enforced,
+% and the returned solution and profiles are finite and self-consistent.
+
+clearvars;
+close all;
+clc;
+
+%% User-adjustable Miller-boundary parameters
+R0     = 3.0;    % geometric major radius [m]
+aMinor = 0.8;    % horizontal minor radius [m]
+kappa  = 1.5;    % elongation
+delta  = 0.25;   % triangularity, |delta| < 1
+
+%% User-adjustable profile parameters
+% p'(psiN) = pprime0*(1 - psiN^aP)^bP
+% A negative pprime0 gives pressure that decreases toward the boundary
+% under the solve_GS normalized-flux convention.
+pprime0 = -1.0e6;  % [Pa]
+aP      = 1.5;
+bP      = 2.0;
+
+% F*F'(psiN) = FFprime0*(1 - psiN^cF)^dF
+FFprime0 = 0.3;   % [T^2 m^2]
+cF       = 1.0;
+dF       = 1.0;
+
+%% Other physical and numerical inputs
+B0          = 3.0;  % vacuum toroidal field at R0 [T]
+pedge       = 0.0;  % pressure at psiN = 1 [Pa]
+psiBoundary = 0.0;
+
+nBoundary        = 300;
+NR               = 200;
+NZ               = 200;
+nProfile         = 201;
+quadratureDegree = 10;
+
+showPlot = true;
+
+%% Validate the test parameters
+validateattributes(R0, {'numeric'}, ...
+    {'real','finite','scalar','positive'}, mfilename, 'R0');
+validateattributes(aMinor, {'numeric'}, ...
+    {'real','finite','scalar','positive'}, mfilename, 'aMinor');
+validateattributes(kappa, {'numeric'}, ...
+    {'real','finite','scalar','positive'}, mfilename, 'kappa');
+validateattributes(delta, {'numeric'}, ...
+    {'real','finite','scalar','>',-1,'<',1}, mfilename, 'delta');
+
+if R0 <= aMinor
+    error('TEST_GS:MillerBoundary', ...
+        'Require R0 > aMinor so that the Miller boundary remains at R > 0.');
+end
+
+validateattributes(aP, {'numeric'}, ...
+    {'real','finite','scalar','positive'}, mfilename, 'aP');
+validateattributes(bP, {'numeric'}, ...
+    {'real','finite','scalar','nonnegative'}, mfilename, 'bP');
+validateattributes(cF, {'numeric'}, ...
+    {'real','finite','scalar','positive'}, mfilename, 'cF');
+validateattributes(dF, {'numeric'}, ...
+    {'real','finite','scalar','nonnegative'}, mfilename, 'dF');
+
+%% Construct the Miller boundary
+% R(theta) = R0 + aMinor*cos(theta + asin(delta)*sin(theta))
+% Z(theta) = kappa*aMinor*sin(theta)
+theta = (0:nBoundary-1).'*(2*pi/nBoundary);
+triangularityAngle = asin(delta);
+
+RBoundary = R0 + aMinor*cos( ...
+    theta + triangularityAngle*sin(theta));
+ZBoundary = kappa*aMinor*sin(theta);
+
+if any(RBoundary <= 0)
+    error('TEST_GS:MillerBoundary', ...
+        'The Miller boundary contains R <= 0.');
+end
+
+%% Sample the requested profiles on the solve_GS profile grid
+psiNProfile = linspace(0, 1, nProfile).';
+
+pprime = pprime0*(1 - psiNProfile.^aP).^bP;
+FFprime = FFprime0*(1 - psiNProfile.^cF).^dF;
+
+if any(~isfinite(pprime)) || any(~isfinite(FFprime))
+    error('TEST_GS:Profile', ...
+        'The sampled pprime or FFprime profile contains NaN or Inf.');
+end
+
+%% Package solve_GS input
+input = struct();
+
+input.grid = struct( ...
+    'nBoundary', nBoundary, ...
+    'NR', NR, ...
+    'NZ', NZ, ...
+    'quadratureDegree', quadratureDegree, ...
+    'nProfile', nProfile);
+
+input.dim = struct( ...
+    'R0', R0, ...
+    'B0', B0, ...
+    'aMinor', aMinor);
+
+input.profile = struct( ...
+    'mode', 1, ...
+    'pprime', pprime, ...
+    'FFprime', FFprime, ...
+    'pedge', pedge);
+
+input.boundary = struct( ...
+    'R', RBoundary, ...
+    'Z', ZBoundary, ...
+    'psiBoundary', psiBoundary);
+
+input.Picard = struct( ...
+    'omega', 0.5, ...
+    'maxIterations', 100, ...
+    'updateTolerance', 1.e-8, ...
+    'residualTolerance', 1.e-8, ...
+    'axisMode', 'max', ...
+    'symmetryTolerance', 1.e-12, ...
+    'fluxSpanTolerance', 1.e-12);
+
+input.output = struct( ...
+    'verbose', true, ...
+    'checkTime', true, ...
+    'showPlot', showPlot);
+
+%% Run solve_GS
+equilibrium = solve_GS(input);
+
+%% End-to-end smoke checks
+solverResult = equilibrium.solverResult;
+boundaryNodes = equilibrium.mesh.boundaryNodes;
+
+boundaryError = norm( ...
+    equilibrium.psi(boundaryNodes) - psiBoundary, inf);
+finalResidual = solverResult.residualHistory(end);
+
+assert(solverResult.converged, ...
+    'TEST_GS:Convergence', 'Picard iteration did not converge.');
+assert(finalResidual < input.Picard.residualTolerance, ...
+    'TEST_GS:Residual', 'The final nonlinear residual is too large.');
+assert(boundaryError < 1.e-13, ...
+    'TEST_GS:BoundaryCondition', ...
+    'The fixed-boundary condition is not satisfied.');
+assert(all(isfinite(equilibrium.psi)), ...
+    'TEST_GS:FiniteSolution', 'The solution contains NaN or Inf.');
+assert(all(isfinite(equilibrium.profile.pressure)), ...
+    'TEST_GS:FinitePressure', ...
+    'The reconstructed pressure contains NaN or Inf.');
+assert(all(isfinite(equilibrium.profile.Fpol)), ...
+    'TEST_GS:FiniteFpol', ...
+    'The reconstructed F profile contains NaN or Inf.');
+assert(isequal(size(equilibrium.profile.dp_dpsiN), size(pprime)) && ...
+       norm(equilibrium.profile.dp_dpsiN-pprime, inf) == 0, ...
+    'TEST_GS:PprimeProfile', ...
+    'solve_GS did not preserve the requested pprime samples.');
+assert(isequal(size(equilibrium.profile.FdF_dpsiN), size(FFprime)) && ...
+       norm(equilibrium.profile.FdF_dpsiN-FFprime, inf) == 0, ...
+    'TEST_GS:FFprimeProfile', ...
+    'solve_GS did not preserve the requested FFprime samples.');
+
+fprintf('\nMiller/profile solve_GS smoke test passed.\n');
+fprintf('  Picard iterations = %d\n', solverResult.iterations);
+fprintf('  Final residual    = %.3e\n', finalResidual);
+fprintf('  Boundary error    = %.3e\n', boundaryError);
+fprintf('  Magnetic axis     = (%.8f, %.8f) m\n', ...
+    equilibrium.axisPoint(1), equilibrium.axisPoint(2));
