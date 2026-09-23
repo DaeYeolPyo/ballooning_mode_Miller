@@ -1,5 +1,5 @@
 function figures = plot_GS_equilibrium(equilibrium)
-%PLOT_GS_EQUILIBRIUM Plot flux fields, flux profiles, and convergence.
+%PLOT_GS_EQUILIBRIUM Plot fields, profiles, convergence, and residual.
 %
 %   figures = plot_GS_equilibrium(equilibrium)
 
@@ -180,10 +180,28 @@ function figures = plot_GS_equilibrium(equilibrium)
     title('Grad-Shafranov Picard convergence');
     set(gca,'FontSize',11);
 
+    %% Final discrete weak residual
+    % The entries of K*psi-f are residual functionals evaluated with the
+    % P3 basis functions. They are not pointwise strong-form residuals, so
+    % plot them at the free-DOF locations rather than interpolating them as
+    % a continuous scalar field.
+    weakResidualFigure = plot_final_weak_residual( ...
+        P3,result,equilibrium.axisPoint,Rlim,Zlim);
+
+    qConstraintFigure = [];
+
+    if isfield(equilibrium,'constraintResult') && ...
+            isfield(profile,'qPrescribed') && ...
+            ~isempty(profile.qPrescribed)
+        qConstraintFigure = plot_pq_q_comparison(equilibrium);
+    end
+
     figures = struct( ...
         'fields',fieldFigure, ...
         'profiles',profileFigure, ...
-        'convergence',convergenceFigure);
+        'convergence',convergenceFigure, ...
+        'weakResidual',weakResidualFigure, ...
+        'qConstraint',qConstraintFigure);
 end
 
 
@@ -229,4 +247,162 @@ function decorate_profile_axes(ax,yLabelText,titleText)
     title(ax,titleText);
 
     ax.FontSize = 11;
+end
+
+
+function residualFigure = plot_final_weak_residual( ...
+    P3,result,axisPoint,Rlim,Zlim)
+%PLOT_FINAL_WEAK_RESIDUAL Plot K*psi-f on the unconstrained P3 DOFs.
+
+    requiredFields = {'finalResidual','freeNodes','residualHistory'};
+
+    for iField = 1:numel(requiredFields)
+        fieldName = requiredFields{iField};
+
+        if ~isfield(result,fieldName)
+            error('GS:Plot:MissingResidualField', ...
+                'equilibrium.solverResult.%s is required.',fieldName);
+        end
+    end
+
+    freeNodes = result.freeNodes(:);
+    residual = result.finalResidual(:);
+    residualHistory = result.residualHistory(:);
+    nDof = size(P3.points,1);
+
+    if isempty(freeNodes) || numel(residual) ~= numel(freeNodes)
+        error('GS:Plot:ResidualSize', ...
+            ['solverResult.finalResidual must contain one value ', ...
+             'per free node.']);
+    end
+
+    if any(freeNodes < 1) || any(freeNodes > nDof) || ...
+            any(freeNodes ~= round(freeNodes)) || ...
+            numel(unique(freeNodes)) ~= numel(freeNodes)
+        error('GS:Plot:InvalidFreeNodes', ...
+            'solverResult.freeNodes contains invalid node indices.');
+    end
+
+    if any(~isfinite(residual)) || isempty(residualHistory) || ...
+            any(~isfinite(residualHistory)) || ...
+            any(residualHistory < 0)
+        error('GS:Plot:InvalidResidual', ...
+            'The final residual and residual history must be finite.');
+    end
+
+    % Recover the balance scale used by Picard_iteration:
+    %
+    %   relativeResidual = norm(finalResidual)/balanceScale.
+    %
+    % This makes the plotted coefficients dimensionless and ensures that
+    % their 2-norm equals the reported final relative residual (apart from
+    % the exactly-zero case).
+    residualNorm = norm(residual);
+    finalRelativeResidual = residualHistory(end);
+
+    if residualNorm == 0
+        normalizedResidual = zeros(size(residual));
+    elseif finalRelativeResidual > 0
+        balanceScale = residualNorm/finalRelativeResidual;
+        normalizedResidual = residual/balanceScale;
+    else
+        error('GS:Plot:InconsistentResidual', ...
+            ['A nonzero final residual cannot have a zero reported ', ...
+             'relative residual.']);
+    end
+
+    residualFigure = figure( ...
+        'Name','Grad-Shafranov final weak residual', ...
+        'NumberTitle','off', ...
+        'Color','w', ...
+        'Units','normalized', ...
+        'Position',[0.08,0.10,0.84,0.70]);
+
+    residualLayout = tiledlayout(residualFigure,1,2, ...
+        'TileSpacing','compact', ...
+        'Padding','compact');
+
+    % Signed residual coefficients.
+    axSigned = nexttile(residualLayout);
+    draw_mesh_background(axSigned,P3);
+
+    scatter(axSigned, ...
+        P3.points(freeNodes,1), ...
+        P3.points(freeNodes,2), ...
+        22,normalizedResidual,'filled');
+
+    signedLimit = max(abs(normalizedResidual));
+
+    if signedLimit == 0
+        signedLimit = 1;
+    end
+
+    clim(axSigned,[-signedLimit,signedLimit]);
+    colormap(axSigned,blue_white_red_colormap(256));
+
+    signedColorbar = colorbar(axSigned);
+    signedColorbar.Label.String = 'r_i / balance scale';
+
+    title(axSigned,'Signed weak-residual coefficient');
+    decorate_spatial_axes(axSigned,P3,axisPoint,Rlim,Zlim);
+
+    % Log-magnitude residual coefficients. The floor prevents log10(0)
+    % while remaining far below any practically relevant tolerance.
+    axMagnitude = nexttile(residualLayout);
+    draw_mesh_background(axMagnitude,P3);
+
+    magnitudeFloor = 10*eps(max(1,max(abs(normalizedResidual))));
+    logMagnitude = log10(max(abs(normalizedResidual),magnitudeFloor));
+
+    scatter(axMagnitude, ...
+        P3.points(freeNodes,1), ...
+        P3.points(freeNodes,2), ...
+        22,logMagnitude,'filled');
+
+    colormap(axMagnitude,parula(256));
+
+    magnitudeColorbar = colorbar(axMagnitude);
+    magnitudeColorbar.Label.String = ...
+        'log_{10}(|r_i| / balance scale)';
+
+    title(axMagnitude,'Weak-residual magnitude');
+    decorate_spatial_axes(axMagnitude,P3,axisPoint,Rlim,Zlim);
+
+    title(residualLayout,sprintf( ...
+        'Final discrete weak residual, relative 2-norm = %.3e', ...
+        norm(normalizedResidual)));
+end
+
+
+function draw_mesh_background(ax,P3)
+%DRAW_MESH_BACKGROUND Show the affine P1 element skeleton.
+
+    patch( ...
+        'Parent',ax, ...
+        'Faces',P3.P1elements, ...
+        'Vertices',P3.P1points, ...
+        'FaceColor','none', ...
+        'EdgeColor',[0.82,0.82,0.82], ...
+        'LineWidth',0.35);
+
+    hold(ax,'on');
+end
+
+
+function map = blue_white_red_colormap(nColor)
+%BLUE_WHITE_RED_COLORMAP Small dependency-free diverging colormap.
+
+    halfColor = floor(nColor/2);
+    lower = [ ...
+        linspace(0.10,1.00,halfColor).', ...
+        linspace(0.30,1.00,halfColor).', ...
+        linspace(0.85,1.00,halfColor).'];
+
+    upperCount = nColor-halfColor;
+    upper = [ ...
+        linspace(1.00,0.85,upperCount).', ...
+        linspace(1.00,0.15,upperCount).', ...
+        linspace(1.00,0.10,upperCount).'];
+
+    map = [lower;upper];
 end

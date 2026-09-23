@@ -4,7 +4,11 @@ clearvars; close all; clc;
 
 thisDir = fileparts(mfilename('fullpath'));
 rootDir = fullfile(thisDir,'..','..');
-addpath(thisDir,fullfile(rootDir,'equilibrium'));
+addpath(thisDir, ...
+    fullfile(rootDir, 'equilibrium'), ...
+    fullfile(rootDir, 'GS_fixed'));
+
+setup_solve_GS;
 
 %% Reference equilibrium and FEM controls
 gfile = fullfile(rootDir,'gfiles','geqdsk_PT0.6');
@@ -42,7 +46,7 @@ input.Picard = struct('omega',0.5,'maxIterations',150, ...
     'updateTolerance',1e-9,'residualTolerance',1e-9, ...
     'axisMode','max','symmetryTolerance',1e-12, ...
     'fluxSpanTolerance',1e-12);
-input.output = struct('verbose',true,'checkTime',true,'showPlot',false);
+input.output = struct('verbose',true,'checkTime',true,'showPlot',true);
 
 equilibrium = solve_GS(input);
 
@@ -122,6 +126,8 @@ assert(isequal(equilibrium.profile.dp_dpsiN,pprimeN) && ...
 plot_comparison(R,Z,psiFEM,psiGEQDSK,errorPsi,valid, ...
     equilibrium,reference,boundary,psiSpan);
 
+plot_profile_comparison(equilibrium,reference,psiSpan);
+
 %% Local functions
 function boundary = clean_boundary(R,Z)
 boundary = [R(:),Z(:)];
@@ -162,7 +168,7 @@ if limit>0, clim(ax(3),[-limit,limit]); end
 title(ax(3),'(\psi_{FEM}-\psi_{GEQDSK})/|\Delta\psi|'); colorbar(ax(3));
 for a = ax
     hold(a,'on'); plot(a,boundary(:,1),boundary(:,2),'k-','LineWidth',1.2);
-    axis(a,'equal'); grid(a,'on'); box(a,'on'); xlabel(a,'R [m]'); ylabel(a,'Z [m]');
+    grid(a,'on'); box(a,'on'); xlabel(a,'R [m]'); ylabel(a,'Z [m]');
 end
 
 result = equilibrium.solverResult;
@@ -172,4 +178,110 @@ semilogy(iteration,result.updateHistory,'o-',iteration, ...
     result.residualHistory,'s-','LineWidth',1.2);
 grid on; box on; xlabel('Picard iteration'); ylabel('Relative error');
 legend('solution update','nonlinear residual','Location','best');
+end
+
+function plot_profile_comparison(equilibrium,reference,psiSpan)
+% Compare flux functions using the common outward normalized flux psi_N.
+%
+% GEQDSK pprime and ffprim are derivatives with respect to its dimensional
+% poloidal flux.  The FEM result stores derivatives with respect to psi_N,
+% so multiply the GEQDSK derivatives by dpsi/dpsi_N = psiSpan before
+% comparing them.
+
+requiredProfileFields = { ...
+    'psiN','pressure','q','Fpol','dp_dpsiN','FdF_dpsiN'};
+
+for k = 1:numel(requiredProfileFields)
+    name = requiredProfileFields{k};
+    if ~isfield(equilibrium.profile,name)
+        error('VERIFY_GEQDSK:MissingFEMProfile', ...
+            'equilibrium.profile.%s is required.',name);
+    end
+end
+
+psiNFEM = equilibrium.profile.psiN(:);
+psiNGEQDSK = linspace(0,1,reference.nw).';
+
+if numel(psiNFEM)<2 || any(~isfinite(psiNFEM)) || ...
+        any(diff(psiNFEM)<=0) || psiNFEM(1)~=0 || psiNFEM(end)~=1
+    error('VERIFY_GEQDSK:InvalidFEMProfileGrid', ...
+        'The FEM profile grid must increase from psi_N=0 to psi_N=1.');
+end
+
+femProfiles = { ...
+    equilibrium.profile.pressure(:), ...
+    equilibrium.profile.q(:), ...
+    equilibrium.profile.Fpol(:), ...
+    equilibrium.profile.dp_dpsiN(:), ...
+    equilibrium.profile.FdF_dpsiN(:)};
+
+geqdskProfiles = { ...
+    reference.pres(:), ...
+    reference.qpsi(:), ...
+    reference.fpol(:), ...
+    reference.pprime(:)*psiSpan, ...
+    reference.ffprim(:)*psiSpan};
+
+yLabels = { ...
+    'p [Pa]', ...
+    'q', ...
+    'F = R B_\phi [T m]', ...
+    'dp/d\psi_N [Pa]', ...
+    'F dF/d\psi_N [(T m)^2]'};
+
+shortNames = {'p','q','F','dp/d\psi_N','F dF/d\psi_N'};
+normalizedError = zeros(reference.nw,numel(femProfiles));
+
+figure('Color','w','Name','FEM and GEQDSK flux-function comparison');
+layout = tiledlayout(2,3,'TileSpacing','compact','Padding','compact');
+
+for k = 1:numel(femProfiles)
+    femValue = femProfiles{k};
+    geqdskValue = geqdskProfiles{k};
+
+    if numel(femValue)~=numel(psiNFEM) || any(~isfinite(femValue))
+        error('VERIFY_GEQDSK:InvalidFEMProfile', ...
+            'FEM profile %s has invalid values or size.',shortNames{k});
+    end
+
+    if numel(geqdskValue)~=reference.nw || any(~isfinite(geqdskValue))
+        error('VERIFY_GEQDSK:InvalidReferenceProfile', ...
+            'GEQDSK profile %s has invalid values or size.',shortNames{k});
+    end
+
+    femOnReferenceGrid = interp1( ...
+        psiNFEM,femValue,psiNGEQDSK,'pchip');
+
+    referenceScale = max(abs(geqdskValue));
+    referenceScale = max(referenceScale,eps);
+    normalizedError(:,k) = ...
+        (femOnReferenceGrid-geqdskValue)/referenceScale;
+
+    ax = nexttile(layout);
+    plot(ax,psiNFEM,femValue,'b-','LineWidth',1.6);
+    hold(ax,'on');
+    plot(ax,psiNGEQDSK,geqdskValue,'k--','LineWidth',1.4);
+    grid(ax,'on');
+    box(ax,'on');
+    xlim(ax,[0,1]);
+    xlabel(ax,'\psi_N');
+    ylabel(ax,yLabels{k});
+
+    if k==1
+        legend(ax,'FEM','GEQDSK','Location','best');
+    end
+end
+
+axError = nexttile(layout);
+plot(axError,psiNGEQDSK,normalizedError,'LineWidth',1.2);
+hold(axError,'on');
+yline(axError,0,'k:');
+grid(axError,'on');
+box(axError,'on');
+xlim(axError,[0,1]);
+xlabel(axError,'\psi_N');
+ylabel(axError,'(FEM-GEQDSK)/max|GEQDSK|');
+legend(axError,shortNames,'Location','best');
+
+title(layout,'Flux-function comparison on normalized poloidal flux');
 end
