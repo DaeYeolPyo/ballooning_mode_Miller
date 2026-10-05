@@ -57,6 +57,11 @@ function [solution, result] = solve_pq_constraint( ...
     context.minimumQPoints = settings.minimumQPoints;
     context.requiredAxisMode = '';
     context.requiredDpsiSign = 0;
+    if isfield(problem.qEvaluation,'contourCache')
+        context.contourCache=problem.qEvaluation.contourCache;
+    else
+        context.contourCache=build_q_contour_cache(problem.mesh,context.contourNR);
+    end
 
     outerTimer = tic;
     evaluationCount = 0;
@@ -91,12 +96,20 @@ function [solution, result] = solve_pq_constraint( ...
     end
 
     if bestInitialIndex == 0
-        failureMessages = cellfun( ...
-            @(candidate) candidate.failureReason, ...
-            initialCandidates,'UniformOutput',false);
+        failureMessages = cell(numel(initialCandidates),1);
+        for k=1:numel(initialCandidates)
+            candidate=initialCandidates{k};
+            detail=candidate.failureReason;
+            if isfield(candidate,'innerResult') && ~isempty(candidate.innerResult)
+                inner=candidate.innerResult;
+                detail=sprintf('%s (iterations %d, residual %.3e, update %.3e)', ...
+                    detail,inner.iterations,inner.finalRelativeResidual,inner.finalRelativeUpdate);
+            end
+            failureMessages{k}=sprintf('scale %.5g: %s',initialScales(k),detail);
+        end
         error('solve_pq_constraint:NoValidInitialEquilibrium', ...
             ['No initial FFprime prediction produced a valid ', ...
-             'equilibrium. Last failure: %s'],failureMessages{end});
+             'equilibrium. Candidates: %s'],strjoin(failureMessages,'; '));
     end
 
     current = initialCandidates{bestInitialIndex};
@@ -181,6 +194,17 @@ function [solution, result] = solve_pq_constraint( ...
                         current,trial,lineScale, ...
                         predictedReduction,settings)
                     accepted = true;
+                    % A candidate satisfying both q tolerances must not be
+                    % discarded for an earlier trial with a smaller mean
+                    % residual but a failing maximum relative q error.
+                    if is_q_converged(trial.metrics,settings)
+                        bestTrial = trial;
+                        bestTrialMerit = trial.merit;
+                        acceptedStep = lineScale*coefficientStep;
+                        acceptedScale = lineScale;
+                        acceptedPredictedReduction = ...
+                            lineScale*predictedReduction;
+                    end
                     break
                 end
             end
@@ -300,10 +324,11 @@ function candidate = evaluate_candidate( ...
             problem,profiles,psiGuess,innerOptions);
         clear warningCleanup
 
+        candidate.state = state;
+        candidate.innerResult = innerResult;
+
         if ~innerResult.converged
             candidate.failureReason = 'inner_GS_nonconvergence';
-            candidate.state = state;
-            candidate.innerResult = innerResult;
             return
         end
 
@@ -322,7 +347,7 @@ function candidate = evaluate_candidate( ...
         qGeometry = evaluate_q_geometry( ...
             problem.mesh,state.psi,state.psiAxis,state.dpsi, ...
             context.qLevels,context.contourNR, ...
-            state.axisNode,state.axisMode);
+            state.axisNode,state.axisMode,context.contourCache);
 
         warningState = warning('query', ...
             'GS:QBoundary:ExtrapolationSensitive');

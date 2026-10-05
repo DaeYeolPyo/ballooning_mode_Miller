@@ -1,0 +1,13 @@
+root=fileparts(fileparts(fileparts(mfilename('fullpath')))); addpath(root);
+config=make_dense_indented_cshape_scan_config;
+scan=struct('indentation',config.Indentation);
+out=fullfile(root,'output','indented_cshape_dense');
+saved=load(fullfile(out,'marginal_trace.mat'),'trace'); trace=saved.trace;
+fig=plot_dense_indented_cshape_boundary(scan,trace);
+exportgraphics(fig,fullfile(out,'critical_beta_indentation.png'),'Resolution',200);
+savefig(fig,fullfile(out,'critical_beta_indentation.fig')); close(fig);
+fig=plot_dense_indented_cshape_boundary(scan,trace,XAxis="indent");
+exportgraphics(fig,fullfile(out,'critical_beta_construction_I.png'),'Resolution',200);
+close(fig);
+assert(isempty(checkcode(fullfile(root,'plot_dense_indented_cshape_boundary.m'),'-id')));
+fprintf('Boundary figures exported with all 17 brackets and axis padding.\n');

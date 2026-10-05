@@ -23,12 +23,19 @@ function surf = extract_flux_surface(eq, eqfunc, target_psiN, opts)
     idx = choose_axis_enclosing_segment(segments, eq.rmaxis, eq.zmaxis);
 
     if isempty(idx)
-        error('No closed contour enclosing magnetic axis was found.');
+        error('equilibrium:FluxSurface:NoClosedContour', ...
+            'No closed contour enclosing magnetic axis was found; refine the contour grid.');
     end
 
     R = segments(idx).R(:);
     Z = segments(idx).Z(:);
 
+    [R, Z] = remove_duplicate_endpoint(R, Z);
+    % contourc can repeat grid-vertex intersections within roundoff. Tiny
+    % arc-length intervals make the subsequent PCHIP slopes ill-conditioned.
+    scale=max(1,max(hypot(R,Z)));
+    keep=[true; hypot(diff(R),diff(Z))>1.e-10*scale];
+    R=R(keep); Z=Z(keep);
     [R, Z] = remove_duplicate_endpoint(R, Z);
     [R, Z] = orient_surface(R, Z, opts.Orientation);
     [R, Z] = start_surface_at_outboard(R, Z, eq.rmaxis, eq.zmaxis);
@@ -68,17 +75,14 @@ function segments = parse_contourc_segments(C)
         R = C(1, cols).';
         Z = C(2, cols).';
 
-        [R, Z] = remove_duplicate_endpoint(R, Z);
-
         if numel(R) >= 4
+            % Test the original contour endpoints. Removing a duplicated
+            % endpoint first destroys the evidence that the contour closes.
+            % Open contours at a masked boundary must never be closed by a
+            % straight segment and treated as physical flux surfaces.
             closed = hypot(R(1) - R(end), Z(1) - Z(end)) < ...
                      1e-8 * max(1, max(hypot(R, Z)));
-
-            % contourc usually gives closed contours with duplicated endpoint,
-            % which was removed above. For selection, polygon closure is implied.
-            if ~closed
-                closed = true;
-            end
+            [R, Z] = remove_duplicate_endpoint(R, Z);
 
             nseg = nseg + 1;
             segments(nseg).level = level;
@@ -161,7 +165,7 @@ function A = signed_polygon_area(R, Z)
     A = 0.5 * sum(R .* Zp - Rp .* Z);
 end
 
-function [R, Z] = start_surface_at_outboard(R, Z, Raxis, Zaxis)
+function [R, Z] = start_surface_at_outboard(R, Z, ~, Zaxis)
     % Prefer the point closest to the outboard midplane:
     % large R and Z close to magnetic-axis height.
     Rspan = max(R) - min(R);

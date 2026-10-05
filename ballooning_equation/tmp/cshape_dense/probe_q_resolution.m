@@ -1,0 +1,12 @@
+root=fileparts(fileparts(fileparts(mfilename('fullpath'))));
+addpath(root); setup_indented_cshape_scan;
+saved=load(fullfile(root,'output','indented_cshape_dense','column_03.mat'),'scan');
+warm=saved.scan.equilibria{find(saved.scan.done,1,'last')};
+config=make_dense_indented_cshape_scan_config; config.QEvaluation.contourNR=400;
+config.PQConstraint.outer.verbose=true;
+shape=saved.scan.shapes{1}; p0=.05*config.BReference^2/(2*(4*pi*1.e-7));
+timer=tic;
+[equilibrium,diagnostics]=solve_indented_cshape_equilibrium(config,shape,p0,[],warm);
+wallTime=toc(timer);
+save(fullfile(root,'tmp','cshape_dense','probe_q_resolution.mat'),'equilibrium','diagnostics','config','wallTime','-v7.3');
+fprintf('PROBE NR400 I %.3f p0 %.0f success %d time %.1fs\n',shape.indent,p0,~isempty(equilibrium),wallTime);

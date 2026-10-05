@@ -1,0 +1,345 @@
+PAGE 1
+VOLUME $1, NUMBER 21 PHYSICAL REVIEW LETTERS 21 NOVEMBER 1983
+Ballooning Mode Stability of Bean-Shaped Cross Sections for High-P Tokamak Plasmas
+M. S. Chance, S. C. Jardin, and T. H. Stix
+Plasma Physics ~boratoxy, Princeton University, Princeton, New Jersey 08544
+(Received 16 August 1983)
+Indentation of a tokamak plasma on its inner-major-radius side is shown to be strongly
+beneficial for achieving high-p stability against ballooning modes. With use of a set of
+reasonable equilibrium profiles, it is found that moderate indentation provides accessi-
+bility to the second region of stability. Ohmic equilibrium configurations which exhibit
+the second stability region have not yet been found.
+PACS numbers: 52.55.6b, 52.30.+r, 52.35.Py, 52.65.+z
+The capability to create and maintain stable
+plasmas with P ~ 20'%%uo would comprise a major
+technological advantage for a tokamak reactor.
+However, the magnetohydrodynamic (MHD) bal-
+looning instability could be a serious obstacle to
+this goal. Several studies have been carried out
+to find envir'onments favorable for suppressing
+this mode." Recently, an empirical shape-
+optimization study by Miller and Moore' has
+shown that a bean-shaped plasma —inwardly con-
+cave at the inner-major-radius side —can en-
+hance the achievable stable P against ballooning.
+A similar shape had earlier been found by Merci-
+er' to enhance stability against localized inter-
+change. In this paper we find that bean shapes
+can exhibit strong local magnetic shear and short
+connection lengths and, in fact, under certain
+modest conditions make accessible the second
+region of stability against ballooning modes.
+If we write B=c'pxv(+@vs—= %uxor(, JXB
+='p, and»&B =J, the Grad-Shafranov equation
+takes the form
+' x ''0 =J "=—(P'+kV'/&')
+The poloidal flux is 2& (, x is the major radius,
+p is the azimuthal angle in the cylindrical coordi-
+nates (', p, &), and primes denote differentiation
+with respect to g. Equation (1) is solved by use
+of a flux coordinate code' in the fixed-boundary
+mode, specifying the shape of the plasma boun-
+dary. This shape is given by the bean" equation,
+x =x +p cosy, ~ =Ep siny,
+"here p =A(1+B cost), y =C sint, and 0- t & 2'
+so that —C - y & C. Given &, B, C, and E, the as-
+pect ratio is fixed by the choice of x. Unless
+otherwise stated, A =1.0, 8 =0.6, b/a =1.386,
+and R/a =4.0 (Fig. 1). The indentation parame-
+ter, d/2a, is adjusted by changing C.
+It is apparent even looking casually at the mag-
+netic surfaces that a line of force on an outer
+bean surface spends most of its life at values of
+major radius smaller than the magnetic-axis ma-
+jor radius. Because dl-Rdp and B-1/R, bean
+shaping can easily make u = fdl/' smaller on the
+outer surfaces than on the magnetic axis. To-
+gether with finite shear, this average magnetic
+well tends to stabilize interchange modes. Never-
+theless, the plasma may be susceptible to bal-
+looning perturbations which adjust themselves
+within a surface to be large where the well is
+weak or nonexistent, and small otherwise. These
+modes are described by the ballooning equation
+which can be written in the form' '
+1B ~
+~
+~~2+ 2 I B.V4
+2p' 8'
+~2 ~g ~2
+1+p + I 4 —0, 3
+where v&=z ~
+Vg, w, =' ~
+BxVp, and ~=(B/B)
+~ (v8/B) ~ The first term contains the effect of
+field tension, the second contains the potentially
+R/a = 40
+b/a = I.586
+d/2a = 0.304
+20
+FIG. 1. Geometry used to calculate the fixed-bounda-
+ry equilibria. The flux surfaces are spaced in equal
+increments of g'/~
+ 1983 The American Physical Society 1963
+
+
+PAGE 2
+VOLUME 51) NUMBER 21 PHYSICAL REVIEW LETTERS 21 NOVEMBER 1983
+destabilizing pressure- curvature combination,
+and the third term stems from fluid inertia.
+Both the connection length and the local mag-
+netic shear, S, play important roles in ballooning
+stability theory. ' The dependence of Ec[. (3) on S
+occurs through the integrated local shear, I; we
+have
+BxVg BXVg
+IV/I'
+=- i v ', )-=5 vsIV/ I'
+Ppy=0. 86 %
+(b j ttttttttpt
+++
+Ay=083%
+S=o
+t+'
+where
+1 (gg)' 9 (vy': vtt 8g) (4)
+(C j t t t.t.t;&,.t,+.tt
+4
+ISAy =8.75% (4)
+++
+tttt+ttttt
+g —= (Vg xV8 ~ Vy) '.
+Since q(g) =(1/2v) fag/x'd0, then (1/2v) )SAd9
+=q'(g), so that S is comprised of the averaged
+global shear q'( j) plus a. residual oscillating part.
+In a conventional tokamak the residual contribu-
+tion to ~ can be so negative on the outer of the
+major radius, where the poloidal field is usually
+the strongest, as to make S vanish there Icf. Fig.
+2(a)]. The vanishing of S is the condition that
+surfaces containing both B and Vg exist and the
+local interchange of magnetic field lines can be
+most easily realized on such surfaces. However,
+a strong outward shift of the magnetic axis can
+appreciably strengthen the poloidal magnetic field
+on the outside and cause the vanishing points of
+~ to move away from the destabilizing region.
+This shift may be realized by increasing the
+pressure but, unfortunately, the onset of the in-
+stability usually occurs before local shear and/
+or connection length stabilization actually takes
+place. Another route to stability, exploited here,
+is to indent the plasma on its inner-major-radius
+side so that the axis is effectively shifted even
+at low P. Further increase of the pressure en-
+hances the shift even more, thus rendering the
+plasma immune to instability.
+Contours of constant local shear in the neighbor-
+hood of S =0 are shown in Fig. 2(a) for a moder-
+ately indented low-p plasma. The local shear
+here is zero and/or weak in the outer region of
+the plasma. Increasing the pressure at this in-
+dentation causes instability at about P —2.6%. A
+stronger indentation, as shown in Fig. 2(b),
+moves the S =0 contour farther out. In this ease,
+even though the shear is still weak at low p [Fig.
+2(b)] an increase in pressure IFig. 2(c)] strength-
+ens the local shear at large major radius, pre-
+1964
+. -'.',''it t+t
++
+t 7~
++
+:+
+i:::,:' '.. +
++
+FIG. 2. (a)-(c): Contours of constant local shear S
+at and near S=O showing its variation with p and in-
+dentation. (d) Contours of constant normal magnetic
+curvature.
+~
+serving stability by the self-healing process. '
+Stabilization due to the shortened connection
+length of the indented plasma is also effective.
+The strong poloidal field at the outside of the
+torus due to the indentation and finite pressure
+causes the magnetic field lines to move rapidly
+through the bad-curvature region while lingering
+at the tips of the bean which are generally located
+in areas of favorable normal curvature. As seen
+in Fig. 2(d) there is a clear reduction in the size
+of the dangerous region, where the normal curva-
+ture is negative.
+The effect of indentation was first studied by
+numerical solutions of Eq. (3) with the profiles
+q(y) =Eq~s', 0-~-3, andP(y) =p.(1-Y')'
+where y =g/b g, 2«P being the poloidal flux with-
+in the plasma. The coefficients q; were specified
+such that q(0) =1.03, q(1) =4.2, q'(0) =0.843 75,
+and q'(1) =9.0. The results are shown in Fig. 3.
+At low indentation it is seen that an increase of
+p, „=- 2 Jp dv/JB'dv (obtained by increasing p, )
+causes the plasma to become balloon unstable,
+
+
+PAGE 3
+VOLUME 51, NUMBER 21 PHYSICAL REVIEW LETTERS 21 NOVEMBER 1983
+25 I 0
+o Stable
+~ Unstable
+0.6: -- ~0.83%
+20— 4i
+l5—
+00 0
+~~~ 0
+4 ~~ 0 0
+~ N 04 04 4
+4 4 ~ 045— 4 ~ ~4 4 ~ wp
+00 n I n
+0 O. l 0, 2 0.5
+INDFNTATION (d/2a j
+FIG. 3. Stability plot of p vs indentation showing the
+first and second regions of stability at low indentation,
+At sufficiently high indentation the second region be-
+comes accessible.
+~O0
+IO—
+but further increase of the pressure places the
+~
+e 8"13plasma in the so-called second stability regime.
+Moreover, if the indentation is large enough, in-
+creasing the plasma pressure bypasses the un-
+stable region completely. Bean shaping thus pro-
+vides a path for access to the second region of
+stability of ballooning modes.
+An alternative method for parametrizing the
+equibbrium, instead of specifying the q(y) an
+p(y ) profiles, is to fix the temperature profile
+and then to use the Ohmic equilibrium condition,
+(J B)/(B &P) =&T, ', to prescribe the current
+distribution. The free parameter, E, is used to
+determine either the total plasma current or the
+safety factor on the magnetic axis. We then use
+T,(P) =To[1-y4] and P(g) =P,[1-y2]2, the latter
+being the same as in the flux-conserving sequence
+described previously for the results in Fig. 3.
+The exponents in the 1', profile were chosen to
+avoid excessive current peaking and the corre-
+sponding large shear or lack of equilibrium. Fig-
+ure 4 shows ~ll„for several equilibrium config-
+urations from Fig. 3 corresponding to different
+P values for the indentation d/2a =0.3. For the
+prescribed-q equilibrium at low P, the tempera-
+ture profile is broad, has a plateau near the outer
+edge, and does not go smoothly to zero, but to a
+pedestal value T,(edge) - ~ T,(center).
+This Ohmic equilibrium study is summarized in
+Fig. 5, showing contours of ~, the infinite-~
+eigenvalue on the most unstable surface, for a
+continuous range of q, and (p). These configura-
+tions provide improved P values in the first sta-
+bility regime, but a second regime exhibiting com-
+0.5
+m 0.4-
+CQ I
+V
+n, 0.$—
+CQI
+Wl
+V
+0.2-
+O. I—
+0- 0.2 0.4 0.6 0.8 l.0
+FIG. 4. JIl~~ for equilibria where q(g) is prescribed.
+The double-dashed curve is the corresponding profile
+used in the Ohmic equilibrium studies. where T~(g) is
+prescribed.
+O. I 6
+Mercier
+Unstable
+O.I4—
+O. I 2—
+O. I 0—
+~ 0.08—
+V
+0.06-
+0.04-
+0.02-
+Stable
+0.05
+0
+0.6
+I
+0.8
+I
+I.O
+qp
+I.4
+FIG. 5. Stability diagram for ballooning modes when
+the Ohmic equilibrium condition is used. Here A. =p
+piete stabilization has not been obtained. It ap-
+pears likely that the second regime may lie in
+the upper right-hand corner of this diagram, but
+a competing tendency for Q, d g, to increase as
+both q, and (p) increase makes obtaining equilib-
+rium difficult in this region. Different tempera-
+ture profiles may possibly exhibit the second sta-
+ble regime, and some tailoring of experimental
+profiles can be effected by adjusting the time
+signature of the tokamak transformer-induced
+loop voltage. There are also non-Ohmic supple-
+mentary heating methods and a future potential
+1965
+
+
+PAGE 4
+VQLUME 51, NUMBER 21 PHYSICAL REVIEW LETTERS 21 NOvEMBER 198$
+for steady-state current drive in which case the
+current may have significant deviation from the
+Ohmic one. It should be pointed out that the stud-
+ies by Mercier' on a class of supplementary-
+heated kidney-shaped configurations resulted in
+plasmas stable for p & 3%-5%.
+In future papers we shall discuss stability
+against low-n MHD modes, finite-Larmor-radius
+modifications of the ballooning modes, and parti-
+cle orbit-confinement properties.
+Discussions and cooperation with Dr. H. C.
+Grimm, Dr. D. A. Monticello, Dr. A. H. Boozer,
+and Dr. F. W. Perkins and other co-workers at
+Princeton University are greatly appreciated. In
+addition we are pleased to acknowledge the inter-
+est and encouragement of Dr. H. P. Furth and
+Dr. P. H. Rutherford.
+This work was supported by U. S. Department
+of Energy Contract No. DE-AC02-76-CHO-3073.
+~A. M. Todd, J. Manickam, M. Okabayashi, M. S.
+Chance, R. C. Grimm, J. M. Greene, and J. L. John-
+son, Nucl. Fusion 19, 743 (1979).
+L. C. Bernard, D. Dobrott, F, J. Helton, and R. W.
+Moore, Nucl. Fusion 20, 1199 (1980).
+R. Miller and B. W. Moore, Phys. Bev. Lett. 43,
+765 (1979).
+C. Mercier, in Lectures in P/asma Physics', EUBA-
+TOM-CEA/CEN/EUR 5/27e {EURATON, Luxembourg,
+1974).
+J. DeLucia, S. C. Jardin, and A. M. M. Todd, J.
+Comput. Phys. 37, 183 (1980).
+D. Dobrott, D. B. Nelson, J. M. Greene, A. H.
+Glasser, M. S. Chance, and E. A. Frieman, Phys.
+Rev. Lett. 39, 943 (1977).
+J. W. Connor, B.J. Hastie, and J. B. Taylor, Phys.
+Hev. Lett. 40, 396 (1978).
+J. M. Greene and M. S. Chance, Nucl. Fusion 21,
+453 (1981).
+9B. Coppi, A. Ferreira, and J.J. Bamos, Phys. Rev.
+Lett. 44, 990 (1980).
+D. Lortz and J. Nuhrenberg, Phys. Lett. 68A, 49
+(1978).' H. B. Strauss, W. Park, D. A. Monticello, B. B.
+White, S. C. Jardin, M. S. Chance, A. M. M. Todd,
+and A. H. Glasser, Nucl. Fusion 20, 638 (1980).' C. Mercier, in P/asma Physics and Controlled ÃNc/e-
+ar Eusion Research (international Atomic Energy Agen-
+cy, Vienna, 1979), Vol. 1, p. 701.
+3L. Sugiyama and J. W.-K. Mark, Phys. Lett. 84A,
+123 (1981).
+1966

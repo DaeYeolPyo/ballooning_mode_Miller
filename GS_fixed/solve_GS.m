@@ -1,4 +1,6 @@
-function equilibrium = solve_GS(input)
+function equilibrium = solve_GS(input, preparedProblem)
+    % Optional preparedProblem reuses the same geometry's FEM operators.
+    % Profile amplitudes and FFprime initial predictions may change.
     %======================================================
     % Set dependencies
     %======================================================
@@ -7,7 +9,12 @@ function equilibrium = solve_GS(input)
     %======================================================
     % Prepare profile-independent GS problem
     %======================================================
-    problem = prepare_GS_problem(input);
+    if nargin < 2 || isempty(preparedProblem)
+        problem = prepare_GS_problem(input);
+    else
+        assert_prepared_input(input, preparedProblem);
+        problem = preparedProblem;
+    end
 
     %======================================================
     % Load prepared objects
@@ -252,6 +259,48 @@ function equilibrium = solve_GS(input)
 
     if showPlot
         plot_GS_equilibrium(equilibrium);
+    end
+end
+
+function assert_prepared_input(input, problem)
+    if ~isstruct(problem) || ~isscalar(problem) || ...
+            ~isfield(problem,'prepared') || ~problem.prepared
+        error('GS:Solve:InvalidPreparedProblem','Expected prepare_GS_problem output.');
+    end
+    gridNames = {'NR','NZ','nBoundary','nProfile','quadratureDegree'};
+    for k=1:numel(gridNames)
+        name=gridNames{k};
+        if ~isequal(input.grid.(name),problem.grid.(name))
+            error('GS:Solve:PreparedMismatch','Prepared grid.%s differs from input.',name);
+        end
+    end
+    if ~isequal(input.dim,problem.dim) || ...
+            ~isequal(input.boundary.R(:),problem.boundary.R) || ...
+            ~isequal(input.boundary.Z(:),problem.boundary.Z) || ...
+            ~isequal(input.boundary.psiBoundary,problem.boundary.psi)
+        error('GS:Solve:PreparedMismatch','Prepared geometry or dimensional reference differs.');
+    end
+    picardNames=fieldnames(input.Picard);
+    for k=1:numel(picardNames)
+        name=picardNames{k};
+        value=input.Picard.(name);
+        if strcmp(name,'axisMode'), value=lower(strtrim(char(value))); end
+        if ~isfield(problem.options.Picard,name) || ...
+                ~isequal(value,problem.options.Picard.(name))
+            error('GS:Solve:PreparedMismatch','Prepared Picard.%s differs from input.',name);
+        end
+    end
+    if isfield(input,'qEvaluation')
+        if ~isequal(input.qEvaluation.interiorPsiN(:),problem.qEvaluation.interiorPsiN) || ...
+                ~isequal(input.qEvaluation.contourNR,problem.qEvaluation.contourNR)
+            error('GS:Solve:PreparedMismatch','Prepared q-evaluation grid differs.');
+        end
+    end
+    names={'verbose','checkTime','showPlot'};
+    for k=1:numel(names)
+        if logical(input.output.(names{k}))~=problem.output.(names{k})
+            error('GS:Solve:PreparedMismatch','Prepared output options differ.');
+        end
     end
 end
 

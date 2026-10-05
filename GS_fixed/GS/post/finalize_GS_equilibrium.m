@@ -50,7 +50,7 @@ function equilibrium = finalize_GS_equilibrium(problem, solved)
         'problem');
 
     assert_required_fields(problem.boundary, ...
-        {'psi'}, 'problem.boundary');
+        {'R', 'Z', 'points', 'psi'}, 'problem.boundary');
 
     assert_required_fields(problem.dim, ...
         {'R0', 'B0', 'aMinor'}, 'problem.dim');
@@ -324,6 +324,31 @@ function equilibrium = finalize_GS_equilibrium(problem, solved)
 
     equilibrium.axisNode = axisNode;
     equilibrium.axisPoint = axisPoint;
+
+    % Preserve the dimensional reference data and the ordered fixed
+    % boundary needed by downstream equilibrium adapters.  These data are
+    % part of the solved equilibrium definition and should not have to be
+    % reconstructed from unordered mesh-boundary edges.
+    equilibrium.reference = struct();
+    equilibrium.reference.R0 = R0;
+    equilibrium.reference.B0 = B0;
+    equilibrium.reference.aMinor = aMinor;
+
+    equilibrium.boundary = struct();
+    equilibrium.boundary.R = problem.boundary.R(:);
+    equilibrium.boundary.Z = problem.boundary.Z(:);
+    equilibrium.boundary.points = problem.boundary.points;
+    equilibrium.boundary.psi = psiBoundary;
+
+    % Record the native GS flux convention explicitly.  In the current
+    % maximum-axis solves this span is normally negative, whereas many
+    % GEQDSK consumers use a flux coordinate that increases outward.
+    equilibrium.flux = struct();
+    equilibrium.flux.axis = psiAxis;
+    equilibrium.flux.boundary = psiBoundary;
+    equilibrium.flux.nativeSpan = dpsi;
+    equilibrium.flux.psiNDefinition = ...
+        '(psi-nativeAxis)/nativeSpan';
 
     % Profiles
     equilibrium.profile = struct();

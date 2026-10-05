@@ -1,4 +1,4 @@
-function fe = construct_RHS(Ve, psi_e, quad, pprime, FFprime, dpsi)
+function fe = construct_RHS(Ve, psi_e, quad, pprime, FFprime, dpsi, profileInterpolants)
 % [CONSTRUCT_RHS]
 %
 % Construct the 10 x 1 local source vector for the P3
@@ -47,6 +47,8 @@ function fe = construct_RHS(Ve, psi_e, quad, pprime, FFprime, dpsi)
 %
 %   fe : 10 x 1 local source vector
 %
+% An optional seventh argument contains the two griddedInterpolant objects
+% prepared by assemble_RHS. Six-argument calls retain the reference path.
     mu0 = 4*pi*1.e-7;
 
     %=====================================================
@@ -103,11 +105,15 @@ function fe = construct_RHS(Ve, psi_e, quad, pprime, FFprime, dpsi)
     %=============================================
     % Evaluate profiles
     %=============================================
-    nw = length(pprime);
-    psiN = linspace(0, 1, nw);
-
-    pprime_func  = griddedInterpolant(psiN, pprime/dpsi);
-    FFprime_func = griddedInterpolant(psiN, FFprime/dpsi);
+    if nargin<7
+        nw = length(pprime);
+        psiN = linspace(0, 1, nw);
+        pprime_func  = griddedInterpolant(psiN, pprime/dpsi);
+        FFprime_func = griddedInterpolant(psiN, FFprime/dpsi);
+    else
+        pprime_func = profileInterpolants.pprime;
+        FFprime_func = profileInterpolants.FFprime;
+    end
 
     % For psi_boundary = 0,
     % psiN = (psi - psi_axis)/(-psi_axis) where -psi_axis = dpsi

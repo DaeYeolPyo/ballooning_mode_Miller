@@ -1,6 +1,6 @@
 function qGeometry = evaluate_q_geometry( ...
     P3, psi, psiAxis, dpsi, ...
-    psiNLevels, nR, axisNode, axisMode)
+    psiNLevels, nR, axisNode, axisMode, contourCache)
 
 % [EVALUATE_Q_GEOMETRY]
 % Evaluate the geometry-dependent part of the
@@ -88,7 +88,8 @@ function qGeometry = evaluate_q_geometry( ...
 %
 %       valid
 %           True if the calculation completed successfully.
-    narginchk(8, 8);
+    narginchk(8, 9);
+    if nargin<9, contourCache=[]; end
 
     %==============================================================
     % 0. Input validation
@@ -227,8 +228,19 @@ function qGeometry = evaluate_q_geometry( ...
 
     [Rgrid, Zgrid] = meshgrid(Rvec, Zvec);
 
-    psiGrid = eval_P3_sol( ...
-        P1, P3, psi, [Rgrid(:), Zgrid(:)]);
+    if isempty(contourCache)
+        psiGrid = eval_P3_sol( ...
+            P1, P3, psi, [Rgrid(:), Zgrid(:)]);
+    else
+        if ~isequal(contourCache.P1points,P3.P1points) || ...
+                ~isequal(contourCache.P1elements,P3.P1elements) || ...
+                ~isequal(contourCache.elements,P3.elements) || ...
+                ~isequal(contourCache.RGrid,Rvec) || ~isequal(contourCache.ZGrid,Zvec)
+            error('GS:QGeometry:CacheMismatch','Contour cache belongs to another mesh or grid.');
+        end
+        psiGrid=contourCache.operator*psi;
+        psiGrid(~contourCache.inside)=NaN;
+    end
 
     psiGrid = reshape(psiGrid, size(Rgrid));
 
@@ -251,8 +263,17 @@ function qGeometry = evaluate_q_geometry( ...
         contourMatrix = contourc( ...
             Rvec, Zvec, psiNGrid, [psiNk, psiNk]);
 
-        [X, contourInfo] = select_axis_contour( ...
-            contourMatrix, axisPoint, Rlim, Zlim);
+        try
+            [X, contourInfo] = select_axis_contour( ...
+                contourMatrix, axisPoint, Rlim, Zlim);
+        catch exception
+            if strcmp(exception.identifier,'GS:QGeometry:NoAxisContour')
+                error(exception.identifier, ...
+                    '%s psiN=%.6g, contour grid=%d x %d, axis=(%.6g,%.6g).', ...
+                    exception.message,psiNk,nR,nZ,axisPoint(1),axisPoint(2));
+            end
+            rethrow(exception);
+        end
 
         if size(X,1) < 2
             error('GS:QGeometry:InvalidContour', ...
@@ -626,37 +647,12 @@ function gradPsi = evaluate_P3_gradient_local( ...
 %
 % Evaluate the elementwise P3 gradient at Cartesian query points.
 
-    elementID = pointLocation(P1, Xq);
+    [~, gradPsi, elementID] = ...
+        eval_P3_field(P1, P3, psi, Xq);
 
     if any(isnan(elementID))
         error('GS:QGeometry:PointOutsideMesh', ...
             ['Some flux-surface integration points are outside ', ...
              'the mesh.']);
-    end
-
-    nPoint = size(Xq,1);
-    gradPsi = nan(nPoint,2);
-
-    for k = 1:nPoint
-        e = elementID(k);
-
-        lambda = cartesianToBarycentric( ...
-            P1, e, Xq(k,:));
-
-        xi  = lambda(2);
-        eta = lambda(3);
-
-        vertexIDs = P3.P1elements(e,:);
-        Ve = P3.P1points(vertexIDs,:);
-
-        [~, dNphysical] = ...
-            eval_P3_element(xi, eta, Ve);
-
-        solutionIDs = P3.elements(e,:);
-
-        gradient = ...
-            dNphysical*psi(solutionIDs);
-
-        gradPsi(k,:) = gradient.';
     end
 end
