@@ -1,0 +1,90 @@
+{
+  "reader": "user-supplied eqdsk.py (unmodified)",
+  "reader_sha256": "456099f8a39736e3076b524e61eb2b91f4e8b6986834f4aafc47444cb0e37f80",
+  "python": "3.10.5",
+  "scipy": "1.10.0",
+  "total": 344,
+  "read_passed": 344,
+  "plot_passed": 8,
+  "errors": [],
+  "samples": [
+    {
+      "shape": "indent_00",
+      "case": "p_0023",
+      "read_passed": true,
+      "plotted": true,
+      "edge_R_out": 3.3707859512526435,
+      "edge_R_in": 2.170790891426235,
+      "volume": 32.462230110009614
+    },
+    {
+      "shape": "indent_01",
+      "case": "p_0023",
+      "read_passed": true,
+      "plotted": true,
+      "edge_R_out": 3.6809795765459503,
+      "edge_R_in": 2.4810034940001615,
+      "volume": 40.87276034968109
+    },
+    {
+      "shape": "indent_02",
+      "case": "p_0023",
+      "read_passed": true,
+      "plotted": true,
+      "edge_R_out": 3.9999964513162305,
+      "edge_R_in": 2.8000251649517565,
+      "volume": 50.91585186589797
+    },
+    {
+      "shape": "indent_03",
+      "case": "p_0023",
+      "read_passed": true,
+      "plotted": true,
+      "edge_R_out": 4.137926815786098,
+      "edge_R_in": 2.9379629051458163,
+      "volume": 55.73335985583515
+    },
+    {
+      "shape": "indent_04",
+      "case": "p_0023",
+      "read_passed": true,
+      "plotted": true,
+      "edge_R_out": 4.225347481042336,
+      "edge_R_in": 3.0253754582748353,
+      "volume": 58.94403104918797
+    },
+    {
+      "shape": "indent_05",
+      "case": "p_0023",
+      "read_passed": true,
+      "plotted": true,
+      "edge_R_out": 4.285709364968273,
+      "edge_R_in": 3.0857495894775195,
+      "volume": 61.234352628210246
+    },
+    {
+      "shape": "indent_06",
+      "case": "p_0023",
+      "read_passed": true,
+      "plotted": true,
+      "edge_R_out": 4.31033978659652,
+      "edge_R_in": 3.110343388245141,
+      "volume": 62.186461192446146
+    },
+    {
+      "shape": "indent_07",
+      "case": "p_0023",
+      "read_passed": true,
+      "plotted": true,
+      "edge_R_out": 4.444438750035123,
+      "edge_R_in": 3.2444797652402038,
+      "volume": 67.55291100259126
+    }
+  ],
+  "scope": "Reader parsing/postprocessing on every file; draw_plot on p_0023 of all eight shapes; GUI display/pause bypassed",
+  "new_gs_export_read_plot_passed": true,
+  "original_cli_p0023_exit_code": 0,
+  "profiles_lcfs_axis_current_native_h5_unchanged": true,
+  "grid_padding_fraction": 0.02,
+  "original_outboard_max_psi_n": 0.9765959751999337
+}

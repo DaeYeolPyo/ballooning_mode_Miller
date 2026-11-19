@@ -90,6 +90,8 @@ python -m equilibrium_io desc data/bean/native/indent_00/p_0000/equilibrium.h5 r
 
 All new gfiles use **COCOS 1**, reduced poloidal flux in **Wb/rad**, pressure
 in Pa, F in T m, and current in A. Each has a mandatory provenance `.json`.
+The sampling box includes a 2% margin on each side of the LCFS bounding box,
+so midplane readers can reach the boundary flux before hitting the grid edge.
 The supplied equilibria are fixed-boundary: **the exterior grid is a normal
 linear continuation, not a vacuum solution**. Use the files inside the supplied
 LCFS. External-mode, coil, wall, or vacuum-region calculations need a physical

@@ -68,8 +68,12 @@ python -m equilibrium_io desc data/bean/native/indent_00/p_0000/equilibrium.h5 r
 
 ## 변환 검증
 
-[validation.json](validation.json)에 전체 파일의 해시·COCOS·독립 FreeQDSK readback 결과가 있습니다. [desc_grid_convergence.json](desc_grid_convergence.json)은 작은/큰 indentation과 낮은/높은 압력의 대표 4점에 대해 129/257 R 격자를 비교합니다. psi_N=0.1, 0.5, 0.9, 0.99에서 자속면 적분으로 구한 q의 최대 상대오차는 129점에서 약 **0.136%**, 257점에서 약 **0.020%**입니다. 이 검사는 성장률의 수렴 검사를 대신하지 않습니다.
+[validation.json](validation.json)에 전체 파일의 해시·COCOS·독립 FreeQDSK readback 결과가 있습니다. [desc_grid_convergence.json](desc_grid_convergence.json)은 작은/큰 indentation과 낮은/높은 압력의 대표 4점에 대해 129/257 R 격자를 비교합니다. psi_N=0.1, 0.5, 0.9, 0.99에서 자속면 적분으로 구한 q의 최대 상대오차는 129점에서 약 **0.146%**, 257점에서 약 **0.025%**입니다. 이 검사는 성장률의 수렴 검사를 대신하지 않습니다.
 
 [native_ballooning_regression.json](native_ballooning_regression.json)에는 패키지로 옮긴 DESC 직접 solver와 원본 코드가 대표 2점에서 동일한 eigenvalue를 주는지 확인한 결과가 있습니다.
 
 이 자료를 전달할 때는 gfile만 떼어 보내기보다 이 디렉터리 전체를 함께 전달하는 것을 권장합니다. 원본 H5와 metadata를 보존하면 변환 해상도를 바꾸거나 입력 조건을 추적할 수 있습니다.
+
+## gfile reader 호환성 수정
+
+기존 gfile 격자는 LCFS에 딱 맞아, 격자 끝의 0.1%를 제외하는 reader에서 psi_N=1에 도달하지 못했습니다. R/Z 각 방향으로 LCFS bounding box 폭의 2%씩 여유를 둔 격자로 다시 생성했습니다. 원본 H5, LCFS, 자기축, p/F/q profile은 바뀌지 않았습니다. 여유 영역도 기존과 같은 법선 선형 연장이며 진공장 해가 아닙니다.

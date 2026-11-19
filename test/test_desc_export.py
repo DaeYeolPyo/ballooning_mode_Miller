@@ -8,6 +8,7 @@ import unittest
 
 import h5py
 import numpy as np
+from scipy.interpolate import RegularGridInterpolator, interp1d
 
 from equilibrium_io.desc import desc_to_data, SpectralGeometry
 from equilibrium_io.desc_h5 import H5Equilibrium
@@ -32,6 +33,33 @@ def circular_fixture(path):
 
 
 class DESCExportTests(unittest.TestCase):
+    def test_grid_margin_supports_legacy_midplane_inversion(self):
+        # The lab reader samples only through 0.999*R_grid_max, then inverts
+        # psi_N(R) on all of [0,1]. A box ending on the LCFS cannot do that.
+        def inverse(data):
+            r = np.linspace(data.rmaxis, data.rgrid[-1]*.999, 301)
+            points = np.column_stack((r, np.full_like(r, data.zmaxis)))
+            psi = RegularGridInterpolator((data.rgrid, data.zgrid), data.psirz)(points)
+            u = (psi-data.simag)/(data.sibry-data.simag)
+            u[0] = 0.
+            return interp1d(u, r, kind="cubic")(np.linspace(0, 1, 201))
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)/"equilibrium.h5"
+            circular_fixture(path)
+            tight, _ = desc_to_data(path, nr=33, nz=41, padding=0.)
+            with self.assertRaises(ValueError):
+                inverse(tight)
+            padded, meta = desc_to_data(path, nr=33, nz=41)
+            self.assertTrue(np.all(np.isfinite(inverse(padded))))
+            self.assertLess(padded.rgrid[0], padded.rbbbs.min())
+            self.assertGreater(padded.rgrid[-1], padded.rbbbs.max())
+            self.assertLess(padded.zgrid[0], padded.zbbbs.min())
+            self.assertGreater(padded.zgrid[-1], padded.zbbbs.max())
+            self.assertEqual(meta["grid_padding_fraction"], .02)
+            for value in (-.1, np.nan, True, 20.):
+                with self.assertRaises(ValueError):
+                    desc_to_data(path, nr=33, nz=41, padding=value)
+
     def test_exact_geometry_profiles_and_flux_factor(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)/"equilibrium.h5"

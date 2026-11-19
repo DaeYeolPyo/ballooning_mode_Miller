@@ -3,24 +3,25 @@
     "shape": "indent_00",
     "case": "p_0000",
     "nr": 129,
+    "padding": 0.02,
     "Ip_error": -6.764077076226727e-10,
     "F_std": 1.7555735860427866e-09,
     "q_errors": [
       {
         "psi_n": 0.1,
-        "q_relative_error": 0.0001441026133314687
+        "q_relative_error": 0.00015243697691094929
       },
       {
         "psi_n": 0.5,
-        "q_relative_error": 0.00016421320096252933
+        "q_relative_error": 0.0001773945535094459
       },
       {
         "psi_n": 0.9,
-        "q_relative_error": -2.8368240622827924e-05
+        "q_relative_error": -3.0275717024084215e-05
       },
       {
         "psi_n": 0.99,
-        "q_relative_error": 0.00014150017362009944
+        "q_relative_error": 0.00019816081798433287
       }
     ]
   },
@@ -28,24 +29,25 @@
     "shape": "indent_00",
     "case": "p_0000",
     "nr": 257,
+    "padding": 0.02,
     "Ip_error": -6.764077076226727e-10,
     "F_std": 1.7555735860427866e-09,
     "q_errors": [
       {
         "psi_n": 0.1,
-        "q_relative_error": 3.703018239642638e-05
+        "q_relative_error": 3.9121797145253385e-05
       },
       {
         "psi_n": 0.5,
-        "q_relative_error": 4.0577479972033114e-05
+        "q_relative_error": 4.387926440283114e-05
       },
       {
         "psi_n": 0.9,
-        "q_relative_error": -8.46934996804726e-06
+        "q_relative_error": -9.078484554679431e-06
       },
       {
         "psi_n": 0.99,
-        "q_relative_error": -8.50399048056796e-05
+        "q_relative_error": -7.676276939480795e-05
       }
     ]
   },
@@ -53,24 +55,25 @@
     "shape": "indent_00",
     "case": "p_0042",
     "nr": 129,
+    "padding": 0.02,
     "Ip_error": -6.764160342953573e-10,
     "F_std": 3.312865037634857e-08,
     "q_errors": [
       {
         "psi_n": 0.1,
-        "q_relative_error": -5.890134850247653e-05
+        "q_relative_error": -5.43274190389537e-05
       },
       {
         "psi_n": 0.5,
-        "q_relative_error": -0.0002639081925912814
+        "q_relative_error": -0.0002992511519702961
       },
       {
         "psi_n": 0.9,
-        "q_relative_error": 0.00013697575066831674
+        "q_relative_error": 0.0001556814916762707
       },
       {
         "psi_n": 0.99,
-        "q_relative_error": 0.000608318667311825
+        "q_relative_error": 0.0006947863558147308
       }
     ]
   },
@@ -78,24 +81,25 @@
     "shape": "indent_00",
     "case": "p_0042",
     "nr": 257,
+    "padding": 0.02,
     "Ip_error": -6.764160342953573e-10,
     "F_std": 3.312865037634857e-08,
     "q_errors": [
       {
         "psi_n": 0.1,
-        "q_relative_error": -1.323539640705864e-05
+        "q_relative_error": -1.5502123416141346e-05
       },
       {
         "psi_n": 0.5,
-        "q_relative_error": -6.851348458494993e-05
+        "q_relative_error": -7.381027197030272e-05
       },
       {
         "psi_n": 0.9,
-        "q_relative_error": 3.253035612781824e-05
+        "q_relative_error": 3.5446189721062054e-05
       },
       {
         "psi_n": 0.99,
-        "q_relative_error": 3.5606995372698115e-05
+        "q_relative_error": 6.178238610996578e-05
       }
     ]
   },
@@ -103,24 +107,25 @@
     "shape": "indent_07",
     "case": "p_0000",
     "nr": 129,
+    "padding": 0.02,
     "Ip_error": -6.764084847787899e-10,
     "F_std": 1.5910424566769844e-09,
     "q_errors": [
       {
         "psi_n": 0.1,
-        "q_relative_error": 0.00019513587985813834
+        "q_relative_error": 0.0002350020783187334
       },
       {
         "psi_n": 0.5,
-        "q_relative_error": 0.00014697542680371095
+        "q_relative_error": 0.00015806288745483793
       },
       {
         "psi_n": 0.9,
-        "q_relative_error": 7.86436678074748e-05
+        "q_relative_error": 8.290229026173423e-05
       },
       {
         "psi_n": 0.99,
-        "q_relative_error": 0.00039634580298696966
+        "q_relative_error": 0.0004407572129830109
       }
     ]
   },
@@ -128,24 +133,25 @@
     "shape": "indent_07",
     "case": "p_0000",
     "nr": 257,
+    "padding": 0.02,
     "Ip_error": -6.764084847787899e-10,
     "F_std": 1.5910424566769844e-09,
     "q_errors": [
       {
         "psi_n": 0.1,
-        "q_relative_error": 4.804383699337162e-05
+        "q_relative_error": 5.2452618530499224e-05
       },
       {
         "psi_n": 0.5,
-        "q_relative_error": 3.550039414049273e-05
+        "q_relative_error": 3.8685394155120644e-05
       },
       {
         "psi_n": 0.9,
-        "q_relative_error": 1.452267148409017e-05
+        "q_relative_error": 1.6649701123906223e-05
       },
       {
         "psi_n": 0.99,
-        "q_relative_error": -0.00013450014341068168
+        "q_relative_error": -0.00012104236745438987
       }
     ]
   },
@@ -153,24 +159,25 @@
     "shape": "indent_07",
     "case": "p_0042",
     "nr": 129,
+    "padding": 0.02,
     "Ip_error": -6.764062643327406e-10,
     "F_std": 7.27861959229404e-09,
     "q_errors": [
       {
         "psi_n": 0.1,
-        "q_relative_error": 1.5673513883224497e-05
+        "q_relative_error": -2.089890671219854e-06
       },
       {
         "psi_n": 0.5,
-        "q_relative_error": -0.00038244671978397737
+        "q_relative_error": -0.00039462615433179113
       },
       {
         "psi_n": 0.9,
-        "q_relative_error": 0.0003767461232654968
+        "q_relative_error": 0.0004082376832570902
       },
       {
         "psi_n": 0.99,
-        "q_relative_error": 0.0013589853689539256
+        "q_relative_error": 0.0014573173148937314
       }
     ]
   },
@@ -178,24 +185,25 @@
     "shape": "indent_07",
     "case": "p_0042",
     "nr": 257,
+    "padding": 0.02,
     "Ip_error": -6.764062643327406e-10,
     "F_std": 7.27861959229404e-09,
     "q_errors": [
       {
         "psi_n": 0.1,
-        "q_relative_error": 1.0499061564342336e-05
+        "q_relative_error": -3.5330314807067797e-06
       },
       {
         "psi_n": 0.5,
-        "q_relative_error": -9.420613227308643e-05
+        "q_relative_error": -0.00010150624520722482
       },
       {
         "psi_n": 0.9,
-        "q_relative_error": 8.727417678752424e-05
+        "q_relative_error": 9.554516828643524e-05
       },
       {
         "psi_n": 0.99,
-        "q_relative_error": 0.0001973172058726904
+        "q_relative_error": 0.00024596545803482996
       }
     ]
   }

@@ -79,6 +79,13 @@ Only the archive representation validated for DESC 0.17.3 is supported.
 
 ## Exterior and accuracy
 
+The default sampling box extends beyond the LCFS by 2% of each R/Z extent
+on each side (`padding=0.02`, CLI `--padding 0.02`). This lets readers invert
+the midplane flux through psi_N=1 even when they omit the outermost 0.1% of
+the grid. The LCFS, magnetic axis, native equilibrium and profiles are unchanged.
+The margin is recorded as `grid_padding_fraction` in each sidecar.
+Existing batch outputs with different padding cannot be resumed as if identical.
+
 Fixed-boundary solutions do not contain a physical exterior magnetic field.
 To provide a finite rectangular gfile grid, outside points are filled with
 `psi_b + |grad(psi)_boundary| * distance_to_boundary`, using the nearest LCFS

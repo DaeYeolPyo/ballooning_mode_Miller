@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ballooning-mode"
-version = "0.1.0"
+version = "0.1.1"
 description = "Fixed-boundary Grad-Shafranov and ideal ballooning solvers, with bean equilibrium interchange"
 readme = "README.md"
 requires-python = ">=3.10"

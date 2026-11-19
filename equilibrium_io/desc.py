@@ -15,7 +15,7 @@ from scipy.spatial import cKDTree
 from threadpoolctl import threadpool_limits
 
 from .desc_h5 import H5Equilibrium, radial, trig
-from .geqdsk import make_data, fill_exterior, write_geqdsk
+from .geqdsk import make_data, fill_exterior, write_geqdsk, padded_bounds
 
 
 class GeometryInterpolationError(ValueError):
@@ -159,7 +159,7 @@ class SpectralGeometry:
         return mean, spread, fr
 
 
-def desc_to_data(filename, *, nr=257, nz=None, radial_nodes=1025):
+def desc_to_data(filename, *, nr=257, nz=None, radial_nodes=1025, padding=0.02):
     """Sample an accepted axisymmetric DESC H5 on an R,Z grid.
 
     F is the flux-surface average of R*Bphi. Its finite angular variation is
@@ -186,7 +186,7 @@ def desc_to_data(filename, *, nr=257, nz=None, radial_nodes=1025):
                     raise
                 nodes = min(8193, 2*(nodes-1)+1)
         b = geo.polygon
-        lower, upper = b.min(axis=0), b.max(axis=0)
+        lower, upper = padded_bounds(b, padding)
         nz = max(16, int(round(nr*(upper[1]-lower[1])/(upper[0]-lower[0])))) if nz is None else nz
         if isinstance(nz, bool) or not isinstance(nz, int) or not 16 <= nz <= 999:
             raise ValueError("nz must be an integer in 16..999")
@@ -223,7 +223,7 @@ def desc_to_data(filename, *, nr=257, nz=None, radial_nodes=1025):
         jac = -d["R"][0]*det
         factor = eq.Psi/np.pi/jac
         current = float(np.mean(factor*eq.iota(1.)*(d["R_t"][0]**2+d["Z_t"][0]**2))*2*np.pi/mu_0)
-        rcentr = float((lower[0]+upper[0])/2)
+        rcentr = float((b[:, 0].min()+b[:, 0].max())/2)
         data = make_data(r, z, psi.reshape(nr, nz), axis=geo.axis, span=span,
             rcentr=rcentr, bcentr=float(f[-1]/rcentr), current=current,
             fpol=f, pres=eq.pressure(profile_rho), ffprim=ffprime, pprime=pprime,
@@ -233,6 +233,7 @@ def desc_to_data(filename, *, nr=257, nz=None, radial_nodes=1025):
             source_h5_sha256=eq.sha, cocos=1, flux_units="Wb/rad",
             field_convention="BR=+psi_Z/R; BZ=-psi_R/R; Bphi=F/R",
             source_resolution=eq.resolution, grid=[nr, nz],
+            grid_padding_fraction=float(padding),
             exterior="normal_linear_continuation_NOT_a_vacuum_solution",
             valid_region="inside supplied LCFS; exterior must not be used for vacuum physics",
             outside_grid_points=int(np.count_nonzero(~inside)),
@@ -247,11 +248,12 @@ def desc_to_data(filename, *, nr=257, nz=None, radial_nodes=1025):
         return data, metadata
 
 
-def export_desc_gfile(source, destination, *, nr=257, nz=None, radial_nodes=1025, overwrite=False):
+def export_desc_gfile(source, destination, *, nr=257, nz=None, radial_nodes=1025,
+                      padding=0.02, overwrite=False):
     path = Path(destination)
     if not overwrite and (path.exists() or Path(str(path)+".json").exists()):
         raise FileExistsError(path)
-    data, metadata = desc_to_data(source, nr=nr, nz=nz, radial_nodes=radial_nodes)
+    data, metadata = desc_to_data(source, nr=nr, nz=nz, radial_nodes=radial_nodes, padding=padding)
     warnings.warn("DESC gfile exterior is normal continuation, not a vacuum solution. "
                   "See the .json sidecar.", UserWarning, stacklevel=2)
     return write_geqdsk(data, path, overwrite=overwrite, metadata=metadata)

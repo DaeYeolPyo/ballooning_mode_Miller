@@ -18,7 +18,7 @@ def _hash(path):
 
 def _convert_case(job):
     from .desc import desc_to_data
-    source, output, indentation, nr, include_native, resume = job
+    source, output, indentation, nr, include_native, resume, padding = job
     source, output = Path(source), Path(output)
     shape, case = source.parents[2].name, source.parent.name
     target = output/"gfiles"/shape/(case+".geqdsk.gz")
@@ -28,11 +28,12 @@ def _convert_case(job):
     if resume and target.is_file() and sidecar.is_file():
         meta = json.loads(sidecar.read_text())
         if (meta.get("source_h5_sha256") != sha or meta.get("grid", [None])[0] != nr
-                or meta.get("geqdsk_sha256") != _hash(target)):
+                or meta.get("geqdsk_sha256") != _hash(target)
+                or meta.get("grid_padding_fraction", 0.) != padding):
             raise ValueError(f"Resume input/settings/hash mismatch: {target}")
         data = read_geqdsk(target)
     else:
-        data, meta = desc_to_data(source, nr=nr)
+        data, meta = desc_to_data(source, nr=nr, padding=padding)
         meta["source_relative_path"] = f"{shape}/equilibria/{case}/equilibrium.h5"
         meta["indentation"] = indentation
         write_geqdsk(data, target, metadata=meta)
@@ -52,6 +53,7 @@ def _convert_case(job):
         Ip_A=data.current, q_axis=float(data.qpsi[0]), q_edge=float(data.qpsi[-1]),
         F_edge_Tm=float(data.fpol[-1]), R_axis_m=data.rmaxis, Z_axis_m=data.zmaxis,
         psi_span_Wb_per_rad=data.sibry-data.simag, nr=data.nw, nz=data.nh,
+        grid_padding_fraction=meta["grid_padding_fraction"],
         force_over_gradp_l2=original["force_over_gradp_l2"],
         F_surface_relative_std_max=meta["F_surface_relative_std_max"],
         inverse_map_max_residual_m=meta["inverse_map_max_residual_m"],
@@ -62,7 +64,8 @@ def _convert_case(job):
         source_h5_sha256=sha, gfile_sha256=meta["geqdsk_sha256"])
 
 
-def export_batch(source, output, *, nr=129, workers=1, include_native=False, resume=False):
+def export_batch(source, output, *, nr=129, workers=1, include_native=False,
+                 resume=False, padding=0.02):
     source, output = Path(source).resolve(), Path(output).resolve()
     if isinstance(workers, bool) or not isinstance(workers, int) or not 1 <= workers <= 32:
         raise ValueError("workers must be in 1..32")
@@ -84,7 +87,7 @@ def export_batch(source, output, *, nr=129, workers=1, include_native=False, res
         if (not np.isclose(original["target_p0_kPa"], expected_pressure, rtol=0, atol=1e-9)
                 or original["physics_id"] != p["physics_id"]):
             raise ValueError(f"Case does not match run physics: {path}")
-        jobs.append((str(path), str(output), p["physics"]["indentation"], nr, include_native, resume))
+        jobs.append((str(path), str(output), p["physics"]["indentation"], nr, include_native, resume, padding))
     for shape, plan in plans.items():
         actual = {p.parent.name for p in paths if p.parents[2].name == shape}
         expected = {f"p_{i:04d}" for i in range(len(plan["pressure_kPa"]))}
@@ -136,20 +139,23 @@ def main():
     single.add_argument("source", type=Path); single.add_argument("output", type=Path)
     single.add_argument("--nr", type=int, default=257)
     single.add_argument("--nz", type=int)
+    single.add_argument("--padding", type=float, default=.02, help="Per-side fraction of LCFS R/Z extents")
     single.add_argument("--overwrite", action="store_true")
     batch = sub.add_parser("batch", help="Export a complete Chance run and catalog")
     batch.add_argument("source", type=Path); batch.add_argument("output", type=Path)
     batch.add_argument("--nr", type=int, default=129)
     batch.add_argument("--workers", type=int, default=1)
+    batch.add_argument("--padding", type=float, default=.02)
     batch.add_argument("--include-native", action="store_true")
     batch.add_argument("--resume", action="store_true")
     args = parser.parse_args()
     if args.command == "desc":
         from .desc import export_desc_gfile
-        print(export_desc_gfile(args.source, args.output, nr=args.nr, nz=args.nz, overwrite=args.overwrite))
+        print(export_desc_gfile(args.source, args.output, nr=args.nr, nz=args.nz,
+                               padding=args.padding, overwrite=args.overwrite))
     else:
         export_batch(args.source, args.output, nr=args.nr, workers=args.workers,
-                     include_native=args.include_native, resume=args.resume)
+                     include_native=args.include_native, resume=args.resume, padding=args.padding)
 
 
 if __name__ == "__main__":

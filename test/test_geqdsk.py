@@ -66,6 +66,10 @@ class GFileTests(unittest.TestCase):
             path = eq.export_gfile(Path(directory)/"gs.geqdsk", nr=65, nz=83)
             d = read_geqdsk(path)
             self.assertEqual(check_cocos(d), 1)
+            self.assertLess(d.rgrid[0], d.rbbbs.min())
+            self.assertGreater(d.rgrid[-1]*.999, d.rbbbs.max())
+            self.assertLess(d.zgrid[0], d.zbbbs.min())
+            self.assertGreater(d.zgrid[-1], d.zbbbs.max())
             rr, zz = np.meshgrid(d.rgrid, d.zgrid, indexing="ij")
             values, _, ids = evaluator.evaluate(eq.psi, np.column_stack((rr.ravel(), zz.ravel())))
             inside = ids >= 0
