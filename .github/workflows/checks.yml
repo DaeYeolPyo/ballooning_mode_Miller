@@ -25,3 +25,7 @@ jobs:
           python -m test.test_post_global
           python -m test.test_solver
       - run: python scripts/validate_bean_catalog.py data/bean --require-freeqdsk
+      - name: Run the bean examples shipped in the clone
+        run: |
+          python try_bean_gs.py --output results/bean_smoke
+          python inspect_bean_data.py --output results/catalog_smoke

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ballooning-mode"
-version = "0.1.1"
+version = "0.1.2"
 description = "Fixed-boundary Grad-Shafranov and ideal ballooning solvers, with bean equilibrium interchange"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -18,7 +18,7 @@ gfile-convert = "equilibrium_io.cli:main"
 
 [tool.setuptools]
 packages = ["gs_fixed", "equilibrium_io", "ballooning"]
-py-modules = ["eq_process", "local_equilibrium", "straight_field_line", "salpha", "sturm_liouville"]
+py-modules = ["eq_process", "local_equilibrium", "straight_field_line", "salpha", "sturm_liouville", "try_bean_gs", "inspect_bean_data"]
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}

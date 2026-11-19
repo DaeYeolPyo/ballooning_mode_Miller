@@ -9,6 +9,8 @@ The earlier MATLAB implementation remains available in Git history.
 Python 3.10 or newer:
 
 ```bash
+git clone https://github.com/DaeYeolPyo/ballooning_mode_Miller.git
+cd ballooning_mode_Miller
 python -m pip install -e .
 ```
 
@@ -18,6 +20,22 @@ require DESC or JAX. The H5 adapter supports axisymmetric Fourier-Zernike
 geometry with HermiteSplineProfile pressure/iota; other inputs are rejected.
 
 ## Solve GS and export a gfile
+
+Create a new bean-shape equilibrium with the example included in this repository:
+
+```bash
+python try_bean_gs.py --indentation 0.25 \
+  --r0 3.2 --a 0.8 --kappa 1.386 --b0 3.0 --p0-kpa 50 \
+  --output results/my_bean
+```
+
+This writes the gfile, provenance JSON, equilibrium plot and acceptance report
+under `results/my_bean`. Choose a new output directory for another run. The
+example prescribes pressure and FFprime; q is a computed result.
+All example scripts and the [one-page Korean guide](docs/bean_equilibrium_quick_guide_ko.pdf)
+are included in the clone.
+
+The shaped D-boundary example is also available:
 
 ```bash
 python -m examples.run_gs_export --output results/gs_example
@@ -70,6 +88,20 @@ surface/phase sampling and domain/grid convergence before interpreting a scan.
 See [ballooning guide](docs/BALLOONING.md) and [s-alpha API](docs/salpha_usage.md).
 
 ## Bean equilibria for follow-up work
+
+To unpack all 344 existing gfiles, keeping the compressed originals:
+
+```bash
+find data/bean/gfiles -type f -name '*.geqdsk.gz' -exec gzip -dk {} +
+```
+
+The plain `.geqdsk` files appear beside their compressed originals. To select,
+inspect and plot a case using the included Python example:
+
+```bash
+python inspect_bean_data.py --indentation 0.25 --p0-kpa 925 \
+  --output results/selected_bean
+```
 
 [Dataset guide](data/bean/README.md) and [catalog CSV](data/bean/catalog.csv)
 identify the eight indentation families, pressure points, beta, current,
