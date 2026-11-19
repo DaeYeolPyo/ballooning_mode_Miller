@@ -1,6 +1,6 @@
 # Bean-shape equilibrium 인수인계 자료
 
-Chance, Jardin & Stix, PRL **51**, 1963 (1983), Fig. 3 연구를 위해 계산한 DESC 평형 **344개**입니다. Indentation 8종에 각각 압력 43개를 계산했습니다. 모든 원본은 `accepted=true`, `quality_passed=true`이며, 안정/불안정 여부와 평형 수렴 여부는 별개입니다.
+Chance, Jardin & Stix, PRL **51**, 1963 (1983), Fig. 3 연구를 위해 DESC 평형 **344개**입니다. Indentation 8종에 각각 압력 43개를 계산했습니다. 모든 원본은 `accepted=true`, `quality_passed=true`이며, 안정/불안정 여부와 평형 수렴 여부는 별개입니다.
 
 ![평형 형상과 자속면](overview.png)
 
