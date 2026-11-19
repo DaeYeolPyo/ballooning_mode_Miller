@@ -1,33 +1,14 @@
-# MATLAB autosave files
-*.asv
-*.m~
-
-# MATLAB temporary / backup files
-*.autosave
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.DS_Store
+results/
+output/
+*.log
 *.tmp
-
-# MEX compiled files
-*.mex*
-*.o
-*.obj
-
-# Simulink generated folders
-slprj/
-*_ert_rtw/
-*_grt_rtw/
-
-# MATLAB project cache / settings
-*.prj~ 
-.resources/
-
-# Large result files - 필요하면 주석 해제
-*.mat
-*.fig
-*.png
-*.jpg
-
-*.pptx
-# *.mp4
-# results/
-# output/
-# data/
+.geqdsk-*

@@ -1,0 +1,22 @@
+{
+  "validated_on": "2026-11-19",
+  "python": "3.10.5",
+  "numpy": "1.24.1",
+  "scipy": "1.10.0",
+  "h5py": "3.11.0",
+  "matplotlib": "3.6.2",
+  "contourpy": "1.0.6",
+  "existing_modules_passed": [
+    "test_fem",
+    "test_mesh",
+    "test_assembly",
+    "test_profiles",
+    "test_post",
+    "test_post_global",
+    "test_solver"
+  ],
+  "new_unittest_cases_passed": 6,
+  "gs_export_example_passed": true,
+  "gfile_ballooning_example_passed": true,
+  "wheel_build_and_isolated_import_passed": true
+}

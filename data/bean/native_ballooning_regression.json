@@ -1,0 +1,24 @@
+[
+  {
+    "shape": "indent_00",
+    "case": "p_0000",
+    "psi_n": 0.5,
+    "theta0": 0.3,
+    "theta_max_pi": 4,
+    "cells_per_turn": 256,
+    "lambda_original": -0.001368166480959886,
+    "lambda_packaged": -0.001368166480959886,
+    "difference": 0.0
+  },
+  {
+    "shape": "indent_07",
+    "case": "p_0042",
+    "psi_n": 0.5,
+    "theta0": 0.3,
+    "theta_max_pi": 4,
+    "cells_per_turn": 256,
+    "lambda_original": -0.0006112836146881441,
+    "lambda_packaged": -0.0006112836146881441,
+    "difference": 0.0
+  }
+]
