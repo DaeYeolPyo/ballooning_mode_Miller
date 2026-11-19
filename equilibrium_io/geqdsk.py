@@ -16,6 +16,30 @@ from scipy.spatial import cKDTree
 from eq_process import _parse_geqdsk, EquilibriumData
 
 
+def padded_bounds(boundary, padding=0.02):
+    """LCFS bounding box plus a per-side fraction of its R and Z extents.
+
+    The margin lets readers sample psi_N=1 before reaching the grid edge.
+    It changes the sampling box only, not the supplied plasma boundary.
+    """
+    b = _real(boundary, "boundary")
+    if b.ndim != 2 or b.shape[1] != 2 or len(b) < 3:
+        raise ValueError("boundary must have shape (n>=3, 2)")
+    if isinstance(padding, (bool, np.bool_)):
+        raise ValueError("padding must be a finite nonnegative scalar")
+    fraction = float(_real(padding, "padding", ()))
+    if fraction < 0:
+        raise ValueError("padding must be nonnegative")
+    lower, upper = b.min(axis=0), b.max(axis=0)
+    extent = upper-lower
+    if np.any(extent <= 0):
+        raise ValueError("Boundary must span both R and Z")
+    lower, upper = lower-fraction*extent, upper+fraction*extent
+    if lower[0] <= 0:
+        raise ValueError("Padded grid reaches nonpositive R; reduce padding")
+    return lower, upper
+
+
 def read_geqdsk(filename):
     path = Path(filename)
     opener = gzip.open if path.suffix == ".gz" else open

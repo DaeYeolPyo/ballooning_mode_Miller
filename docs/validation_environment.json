@@ -15,8 +15,9 @@
     "test_post_global",
     "test_solver"
   ],
-  "new_unittest_cases_passed": 6,
+  "new_unittest_cases_passed": 7,
   "gs_export_example_passed": true,
   "gfile_ballooning_example_passed": true,
-  "wheel_build_and_isolated_import_passed": true
+  "wheel_build_and_isolated_import_passed": true,
+  "grid_padding_fraction": 0.02
 }

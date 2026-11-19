@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 
 import numpy as np
+from scipy.interpolate import RegularGridInterpolator, interp1d
 
 # Also works as a script before the project has been installed.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -51,6 +52,16 @@ def main():
                 or not np.all(np.isfinite(d.psirz)) or np.any(d.pres < -1e-8)
                 or np.any(d.fpol <= 0) or np.any(d.qpsi <= 0) or d.limitr != 0):
             raise ValueError(f"Invalid physical/file data: {path}")
+        # Readers commonly omit a small sliver of the grid edge. Their
+        # midplane inverse must still reach the actual LCFS at psi_N=1.
+        psi_at = RegularGridInterpolator((d.rgrid, d.zgrid), d.psirz)
+        for r in (np.linspace(d.rmaxis, d.rgrid[-1]*.999, 301),
+                  np.linspace(d.rgrid[0]*1.001, d.rmaxis, 301)):
+            u = (psi_at(np.column_stack((r, np.full_like(r, d.zmaxis))))-d.simag)/(d.sibry-d.simag)
+            u[0 if r[0] == d.rmaxis else -1] = 0.
+            mapped = interp1d(u, r, kind="cubic")(np.linspace(0, 1, 201))
+            if not np.all(np.isfinite(mapped)):
+                raise ValueError(f"Midplane map does not cover the LCFS: {path}")
         physics = plans[row["indent_id"]]["physics"]
         target_q = np.polynomial.polynomial.polyval(d.psin, physics["q_coefficients"])
         target_p = row["p0_kPa"]*1000*(1-d.psin**2)**2
@@ -75,7 +86,8 @@ def main():
         if i % 64 == 0:
             print(f"Validated {i}/{len(rows)}", flush=True)
     report = dict(schema=1, cases=len(rows), families=len(plans), all_hashes_valid=True,
-        all_cocos_1=True, independent_reader="FreeQDSK" if geqdsk else None,
+        all_cocos_1=True, all_midplane_maps_reach_lcfs=True,
+        independent_reader="FreeQDSK" if geqdsk else None,
         max_abs_Ip_relative_difference_from_DESC=max(abs(r["Ip_relative_difference_from_DESC"]) for r in rows),
         max_F_surface_relative_std=max(r["F_surface_relative_std_max"] for r in rows),
         max_q_relative_error_from_prescribed_profile=q_error_max,

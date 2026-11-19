@@ -15,12 +15,13 @@
     129,
     179
   ],
+  "grid_padding_fraction": 0.02,
   "exterior": "normal_linear_continuation_NOT_a_vacuum_solution",
   "valid_region": "inside supplied LCFS; exterior must not be used for vacuum physics",
-  "outside_grid_points": 7487,
+  "outside_grid_points": 8636,
   "radial_geometry_nodes": 1025,
   "sampled_radial_interpolation_error_m": 7.830463721880676e-09,
-  "inverse_map_max_residual_m": 1.998316140191575e-11,
+  "inverse_map_max_residual_m": 1.999380014144126e-11,
   "F_surface_average": "DESC Jacobian-weighted average of R*Bphi",
   "F_surface_relative_std_max": 1.4091454533349425e-08,
   "Ip_A": 4163909.539880839,
@@ -62,5 +63,5 @@
   "Ip_relative_difference_from_DESC": -6.764057092212283e-10,
   "source_relative_path": "indent_07/equilibria/p_0041/equilibrium.h5",
   "indentation": 0.325,
-  "geqdsk_sha256": "134af2c9e01093995200e11ff31781a8d2588a59f6501bc556321f58ed54dd13"
+  "geqdsk_sha256": "6f5fa36158f7b714ff45aefa82f4c46fbd58bf4129726213d613f6d7b9b87a1c"
 }

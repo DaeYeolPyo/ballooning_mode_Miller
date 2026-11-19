@@ -4,12 +4,13 @@
   "families": 8,
   "all_hashes_valid": true,
   "all_cocos_1": true,
+  "all_midplane_maps_reach_lcfs": true,
   "independent_reader": "FreeQDSK",
   "max_abs_Ip_relative_difference_from_DESC": 6.764160342953573e-10,
   "max_F_surface_relative_std": 2.3575921543889541e-07,
   "max_q_relative_error_from_prescribed_profile": 4.999476388434232e-10,
   "max_pressure_error_divided_by_axis_pressure": 5.406981637311536e-10,
   "max_F_edge_relative_difference_from_DESC": 6.26934606451357e-08,
-  "max_inverse_mapping_residual_m": 1.999997428624793e-11,
+  "max_inverse_mapping_residual_m": 1.9999976529573886e-11,
   "note": "Interchange validation; does not certify a vacuum exterior or ballooning convergence"
 }
